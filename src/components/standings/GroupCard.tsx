@@ -2,7 +2,6 @@ import type { Group } from "@/lib/types";
 import { StandingsTable } from "./StandingsTable";
 import { TiebreakNote } from "./TiebreakNote";
 
-/** One group, framed: label, its table, and the tiebreak note when relevant. */
 export function GroupCard({ group }: { group: Group }) {
   return (
     <section className="rounded-[11px] border border-line bg-surface-2/60 p-5">

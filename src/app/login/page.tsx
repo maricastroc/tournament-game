@@ -17,8 +17,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const destination = () =>
-    new URLSearchParams(window.location.search).get("from") || "/";
+  const destination = () => new URLSearchParams(window.location.search).get("from") || "/";
 
   useEffect(() => {
     if (status === "authed") router.replace(destination());

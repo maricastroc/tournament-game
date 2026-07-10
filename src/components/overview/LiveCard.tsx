@@ -2,10 +2,6 @@ import type { Fixture } from "@/lib/types";
 import { Flag } from "@/components/ui/Flag";
 import { LiveBadge } from "@/components/ui/LiveBadge";
 
-/**
- * The match on the pitch right now — the first thing that needs attention.
- * A soft loss-red wash sets it apart from the scheduled cards below.
- */
 export function LiveCard({ fixture }: { fixture: Fixture }) {
   return (
     <div className="rounded-[11px] border border-loss/30 bg-gradient-to-b from-loss/[0.05] to-surface-2 p-4">

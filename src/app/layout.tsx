@@ -3,12 +3,6 @@ import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth/context";
 import "./globals.css";
 
-/**
- * Three typefaces, three jobs — the mock's whole voice lives here.
- *   Fraunces  → display serif for titles, the champion, editorial accents.
- *   Geist     → the calm sans for UI chrome and team names (the Vercel voice).
- *   Geist Mono → every number: scores, tables, stats, mono eyebrow labels.
- */
 const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
@@ -37,9 +31,7 @@ export const metadata: Metadata = {
     "Run a tournament like you're calling it. Standings, tiebreaks and knockout always coherent.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"

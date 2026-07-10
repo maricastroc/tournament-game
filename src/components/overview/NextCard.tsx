@@ -1,10 +1,6 @@
 import type { Fixture } from "@/lib/types";
 import { Flag } from "@/components/ui/Flag";
 
-/**
- * The next scheduled match, with the one line of context that makes it matter:
- * what's at stake when it kicks off.
- */
 export function NextCard({ fixture }: { fixture: Fixture }) {
   return (
     <div className="rounded-[11px] border border-line bg-surface-2 p-4">

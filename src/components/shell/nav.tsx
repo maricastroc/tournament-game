@@ -14,7 +14,6 @@ const stroke = {
   strokeLinejoin: "round" as const,
 };
 
-/** The four destinations, in the mock's rail order. */
 export const NAV_ITEMS: NavItem[] = [
   {
     href: "/",
@@ -57,6 +56,17 @@ export const NAV_ITEMS: NavItem[] = [
         <circle cx="9" cy="8" r="2.4" fill="var(--color-surface)" />
         <line x1="4" y1="16" x2="20" y2="16" />
         <circle cx="15" cy="16" r="2.4" fill="var(--color-surface)" />
+      </svg>
+    ),
+  },
+  {
+    href: "/tournaments",
+    label: "Tournaments",
+    icon: (
+      <svg viewBox="0 0 24 24" {...stroke}>
+        <path d="M12 3l8 4-8 4-8-4 8-4z" />
+        <path d="M4 12l8 4 8-4" />
+        <path d="M4 17l8 4 8-4" />
       </svg>
     ),
   },

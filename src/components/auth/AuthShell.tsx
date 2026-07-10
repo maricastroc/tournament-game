@@ -1,11 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-/**
- * Shared chrome for the auth screens: the mark, a mono eyebrow, a serif title
- * and a subtitle, centered on the stadium background. The form (and any
- * page-specific footer) is passed as children.
- */
 export function AuthShell({
   eyebrow,
   title,
@@ -38,14 +33,7 @@ export function AuthShell({
   );
 }
 
-/** The full-width amber submit button shared by both forms. */
-export function AuthSubmit({
-  children,
-  disabled,
-}: {
-  children: ReactNode;
-  disabled: boolean;
-}) {
+export function AuthSubmit({ children, disabled }: { children: ReactNode; disabled: boolean }) {
   return (
     <button
       type="submit"
@@ -57,7 +45,6 @@ export function AuthSubmit({
   );
 }
 
-/** Inline form error surface. */
 export function AuthError({ message }: { message: string }) {
   return (
     <p

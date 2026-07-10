@@ -1,6 +1,5 @@
 "use client";
 
-/** A single score dial: −/value/+, clamped to 0–99, tabular so it never jumps. */
 export function Stepper({
   value,
   onChange,
@@ -18,18 +17,18 @@ export function Stepper({
         type="button"
         aria-label={`One fewer goal for ${label}`}
         onClick={() => set(value - 1)}
-        className="h-7 w-7 rounded-[7px] border border-line-2 bg-surface-3 text-[16px] leading-none text-ink-dim transition-colors duration-150 hover:border-amber-line hover:text-ink active:scale-95"
+        className="h-7 w-7 rounded-sm border border-line-2 bg-surface-3 text-[16px] leading-none text-ink-dim transition-colors duration-150 hover:border-amber-line hover:text-ink active:scale-95"
       >
         −
       </button>
-      <span className="w-[34px] text-center font-mono text-[30px] font-bold tabular-nums">
+      <span className="w-8.5 text-center font-mono text-[30px] font-bold tabular-nums">
         {value}
       </span>
       <button
         type="button"
         aria-label={`One more goal for ${label}`}
         onClick={() => set(value + 1)}
-        className="h-7 w-7 rounded-[7px] border border-line-2 bg-surface-3 text-[16px] leading-none text-ink-dim transition-colors duration-150 hover:border-amber-line hover:text-ink active:scale-95"
+        className="h-7 w-7 rounded-sm border border-line-2 bg-surface-3 text-[16px] leading-none text-ink-dim transition-colors duration-150 hover:border-amber-line hover:text-ink active:scale-95"
       >
         +
       </button>

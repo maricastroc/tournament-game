@@ -7,9 +7,7 @@ import { HEADER_SPACER, PairConnector, StraightConnector } from "./Connectors";
 function groupByRound(ties: BracketTie[]): BracketTie[][] {
   const rounds = [...new Set(ties.map((tie) => tie.round))].sort((a, b) => a - b);
   return rounds.map((round) =>
-    ties
-      .filter((tie) => tie.round === round)
-      .sort((a, b) => a.slot - b.slot),
+    ties.filter((tie) => tie.round === round).sort((a, b) => a.slot - b.slot),
   );
 }
 
@@ -48,11 +46,6 @@ function RoundColumn({
   );
 }
 
-/**
- * The signature screen. Rounds flow left→right, connectors thread winners
- * forward, and the final feeds the trophy column. Scrolls horizontally on
- * narrow viewports rather than cramping the cards.
- */
 export function Bracket({ data }: { data: BracketData }) {
   const rounds = groupByRound(data.ties);
   const maxRound = rounds.length;
@@ -72,7 +65,6 @@ export function Bracket({ data }: { data: BracketData }) {
           );
         })}
 
-        {/* the trophy hangs off the final match */}
         <StraightConnector />
         <div className="flex w-[156px] shrink-0 flex-col">
           <div className={HEADER_SPACER} aria-hidden="true" />

@@ -1,13 +1,3 @@
-/**
- * Data-access layer — the single seam the screens read from.
- *
- * Public reads (`getGroups`, `getGroup`, `getBracket`, `getOverview`) try the
- * live API first and fall back to the demo fixtures if it's unreachable, so the
- * app renders whether or not the API is running. Set `NEXT_PUBLIC_USE_LIVE_API=false`
- * to force demo. Tournament chrome and the console scenario stay demo-fed — the
- * API has no tournament-metadata or fixtures endpoint.
- */
-
 import { computeStandings } from "@/lib/standings";
 import type {
   Bracket,
@@ -28,31 +18,31 @@ import {
   type GroupSeed,
   type TieSeed,
 } from "./copa-atlas";
+import type { GroupDetail } from "@/lib/types";
 import { buildTiebreakNote } from "./shared";
-import { liveBracket, liveGroup, liveGroups, liveOverview } from "./live";
+import { liveBracket, liveConsoleGroups, liveGroups, liveMeta, liveOverview } from "./live";
 
 const LIVE_ENABLED = process.env.NEXT_PUBLIC_USE_LIVE_API !== "false";
+const DEMO_TOURNAMENT_ID = 1;
 
-async function withFallback<T>(
-  live: () => Promise<T>,
-  demo: () => T,
-  label: string,
-): Promise<T> {
+async function withFallback<T>(live: () => Promise<T>, demo: () => T, label: string): Promise<T> {
   if (!LIVE_ENABLED) return demo();
   try {
     return await live();
   } catch (error) {
     console.warn(
-      `[data] live "${label}" failed, using demo fixtures:`,
+      `[data] live "${label}" failed, using fallback:`,
       error instanceof Error ? error.message : error,
     );
     return demo();
   }
 }
 
-/* ------------------------------ tournament ------------------------------ */
+function onlyDemo<T>(id: number, build: () => T, empty: T): () => T {
+  return () => (id === DEMO_TOURNAMENT_ID ? build() : empty);
+}
 
-export function getTournamentMeta(): TournamentMeta {
+function demoMeta(): TournamentMeta {
   return {
     id: TOURNAMENT.id,
     name: TOURNAMENT.name,
@@ -67,7 +57,9 @@ export function getTournamentMeta(): TournamentMeta {
   };
 }
 
-/* -------------------------------- groups -------------------------------- */
+export function getTournamentMeta(id: number): Promise<TournamentMeta> {
+  return withFallback(() => liveMeta(id), demoMeta, `meta ${id}`);
+}
 
 function demoGroup(seed: GroupSeed): Group {
   const teams = seed.teamIds.map(team);
@@ -85,19 +77,9 @@ function demoGroups(): Group[] {
   return GROUPS.map(demoGroup);
 }
 
-export function getGroups(): Promise<Group[]> {
-  return withFallback(liveGroups, demoGroups, "groups");
+export function getGroups(id: number): Promise<Group[]> {
+  return withFallback(() => liveGroups(id), onlyDemo(id, demoGroups, []), `groups ${id}`);
 }
-
-export function getGroup(id: number): Promise<Group> {
-  return withFallback(
-    () => liveGroup(id),
-    () => demoGroup(groupSeed(id)),
-    `group ${id}`,
-  );
-}
-
-/* ------------------------------- bracket -------------------------------- */
 
 function toSide(
   teamId: number | null,
@@ -122,26 +104,25 @@ function toBracketTie(seed: TieSeed): BracketTie {
     home: toSide(seed.homeId, seed.homeSourceLabel, seed.homeScore, seed.homePenalties),
     away: toSide(seed.awayId, seed.awaySourceLabel, seed.awayScore, seed.awayPenalties),
     winnerId: seed.winnerId,
-    decidedByPenalties:
-      seed.homePenalties != null && seed.awayPenalties != null,
+    decidedByPenalties: seed.homePenalties != null && seed.awayPenalties != null,
     kickoff: seed.kickoff,
     liveMinute: seed.liveMinute,
   };
 }
 
 function demoBracket(): Bracket {
-  return {
-    stageId: KNOCKOUT_STAGE_ID,
-    champion: null,
-    ties: TIES.map(toBracketTie),
-  };
+  return { stageId: KNOCKOUT_STAGE_ID, champion: null, ties: TIES.map(toBracketTie) };
 }
 
-export function getBracket(): Promise<Bracket> {
-  return withFallback(liveBracket, demoBracket, "bracket");
-}
+const EMPTY_BRACKET: Bracket = { stageId: 0, champion: null, ties: [] };
 
-/* ------------------------------- overview ------------------------------- */
+export function getBracket(id: number): Promise<Bracket> {
+  return withFallback(
+    () => liveBracket(id),
+    onlyDemo(id, demoBracket, EMPTY_BRACKET),
+    `bracket ${id}`,
+  );
+}
 
 function demoLiveFixture(): Fixture | null {
   const seed = TIES.find((tie) => tie.status === "live");
@@ -191,45 +172,25 @@ function demoOverview(): OverviewData {
   };
 }
 
-export function getOverview(): Promise<OverviewData> {
-  return withFallback(liveOverview, demoOverview, "overview");
-}
+const EMPTY_OVERVIEW: OverviewData = {
+  featuredGroup: null,
+  liveFixture: null,
+  nextFixture: null,
+  stats: [],
+};
 
-/* -------------------------------- console ------------------------------- */
-
-export interface ConsoleScenario {
-  groupId: number;
-  groupName: string;
-  qualifyCount: number;
-  teams: import("@/lib/types").Team[];
-  matches: import("@/lib/standings").RawMatch[];
-  editableIndex: number;
-  home: import("@/lib/types").Team;
-  away: import("@/lib/types").Team;
-  /** The real fixture id for this match in the seeded API (Group A: Brazil × Croatia). */
-  liveFixtureId: number;
-  /** Optimistic-lock version to send first; 0 on a fresh seed. */
-  version: number;
-}
-
-export function getConsoleScenario(): ConsoleScenario {
-  const seed = groupSeed(1);
-  const teams = seed.teamIds.map(team);
-  const editableIndex = seed.matches.findIndex(
-    (match) => match.homeId === 1 && match.awayId === 3,
+export function getOverview(id: number): Promise<OverviewData> {
+  return withFallback(
+    () => liveOverview(id),
+    onlyDemo(id, demoOverview, EMPTY_OVERVIEW),
+    `overview ${id}`,
   );
-  const editable = seed.matches[editableIndex];
+}
 
-  return {
-    groupId: seed.id,
-    groupName: seed.name,
-    qualifyCount: seed.qualifyCount,
-    teams,
-    matches: seed.matches,
-    editableIndex,
-    home: team(editable.homeId),
-    away: team(editable.awayId),
-    liveFixtureId: 2,
-    version: 0,
-  };
+export function getConsoleGroups(id: number): Promise<GroupDetail[]> {
+  return withFallback(
+    () => liveConsoleGroups(id),
+    () => [],
+    `console groups ${id}`,
+  );
 }

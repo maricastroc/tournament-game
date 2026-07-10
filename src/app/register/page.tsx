@@ -18,14 +18,12 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const destination = () =>
-    new URLSearchParams(window.location.search).get("from") || "/";
+  const destination = () => new URLSearchParams(window.location.search).get("from") || "/";
 
   useEffect(() => {
     if (status === "authed") router.replace(destination());
   }, [status, router]);
 
-  // mirrors the API rules: name required, valid email, password ≥ 8
   const valid = name.trim().length > 0 && /.+@.+\..+/.test(email) && password.length >= 8;
 
   async function onSubmit(event: React.FormEvent) {

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth/context";
 import { initials } from "@/lib/format";
 
-/** Organizer identity in the topbar: avatar + sign-out when authed, else sign-in. */
 export function UserMenu() {
   const { status, user, logout } = useAuth();
 
@@ -33,9 +32,7 @@ export function UserMenu() {
       >
         {initials(user.name)}
       </div>
-      <span className="hidden text-[13px] font-medium text-ink-dim sm:inline">
-        {firstName}
-      </span>
+      <span className="hidden text-[13px] font-medium text-ink-dim sm:inline">{firstName}</span>
       <button
         type="button"
         onClick={() => logout()}
@@ -43,7 +40,15 @@ export function UserMenu() {
         aria-label="Sign out"
         className="grid h-8 w-8 place-items-center rounded-[8px] text-ink-mute transition-colors duration-150 hover:bg-white/[0.03] hover:text-ink"
       >
-        <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          className="h-[17px] w-[17px]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
           <polyline points="16 17 21 12 16 7" />
           <line x1="21" y1="12" x2="9" y2="12" />

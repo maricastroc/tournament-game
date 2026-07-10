@@ -1,13 +1,3 @@
-/**
- * Live data source — composes the API responses into the UI domain.
- *
- * Covers what the API can serve: group standings and the resolved bracket.
- * Teams are enriched to English + flags; the group name and next-match are
- * derived (the standings endpoint omits the group name; there is no fixtures
- * endpoint, so "next up" is read off the bracket). No live-match state exists
- * server-side, so the Overview's live card is absent in live mode.
- */
-
 import { api } from "@/lib/api/client";
 import { roundName } from "@/lib/format";
 import type {
@@ -15,46 +5,86 @@ import type {
   BracketTie,
   Fixture,
   Group,
+  GroupDetail,
   OverviewData,
   OverviewStat,
+  PhasePill,
+  StageDetail,
+  Team,
+  TournamentDetail,
+  TournamentMeta,
 } from "@/lib/types";
-import { KNOCKOUT_STAGE_ID } from "./copa-atlas";
-import {
-  GROUP_IDS,
-  buildTiebreakNote,
-  enrichStanding,
-  enrichTeam,
-  groupName,
-} from "./shared";
+import { TEAMS } from "./copa-atlas";
+import { buildTiebreakNote } from "./shared";
 
-export async function liveGroup(id: number): Promise<Group> {
-  const standings = (await api.standings(id)).map(enrichStanding);
-  const qualifyCount = standings.filter((row) => row.qualified).length || 2;
-  return {
-    id,
-    name: groupName(id),
-    qualifyCount,
-    standings,
-    tiebreakNote: buildTiebreakNote(standings),
-  };
+type TeamMap = Map<number, Team>;
+
+function teamMapFrom(detail: TournamentDetail): TeamMap {
+  const map = new Map<number, Team>();
+  for (const team of detail.teams) {
+    map.set(team.id, TEAMS[team.id] ?? team);
+  }
+  return map;
 }
 
-export function liveGroups(): Promise<Group[]> {
-  return Promise.all(GROUP_IDS.map(liveGroup));
+function enrich(map: TeamMap, team: Team | null): Team | null {
+  if (team === null) return null;
+  return map.get(team.id) ?? team;
 }
 
-export async function liveBracket(): Promise<Bracket> {
-  const bracket = await api.bracket(KNOCKOUT_STAGE_ID);
+function groupStageOf(detail: TournamentDetail): StageDetail | undefined {
+  return detail.stages.find((stage) => stage.type === "group");
+}
+
+function knockoutStageOf(detail: TournamentDetail): StageDetail | undefined {
+  return detail.stages.find((stage) => stage.type === "knockout");
+}
+
+async function groupsFromDetail(detail: TournamentDetail, teams: TeamMap): Promise<Group[]> {
+  const stage = groupStageOf(detail);
+  if (!stage) return [];
+
+  return Promise.all(
+    stage.groups.map(async (group) => {
+      const rows = (await api.standings(group.id)).map((row) => ({
+        ...row,
+        team: teams.get(row.team.id) ?? row.team,
+      }));
+      return {
+        id: group.id,
+        name: group.name,
+        qualifyCount: group.qualifyCount,
+        standings: rows,
+        tiebreakNote: buildTiebreakNote(rows),
+      } satisfies Group;
+    }),
+  );
+}
+
+export async function liveGroups(id: number): Promise<Group[]> {
+  const detail = await api.getTournament(id);
+  return groupsFromDetail(detail, teamMapFrom(detail));
+}
+
+export async function liveGroup(id: number, groupId: number): Promise<Group | null> {
+  const groups = await liveGroups(id);
+  return groups.find((group) => group.id === groupId) ?? groups[0] ?? null;
+}
+
+async function bracketFromDetail(detail: TournamentDetail, teams: TeamMap): Promise<Bracket> {
+  const stage = knockoutStageOf(detail);
+  if (!stage) return { stageId: 0, champion: null, ties: [] };
+
+  const bracket = await api.bracket(stage.id);
 
   const ties: BracketTie[] = bracket.ties
     .map((tie) => ({
       ...tie,
-      home: { ...tie.home, team: tie.home.team ? enrichTeam(tie.home.team) : null },
-      away: { ...tie.away, team: tie.away.team ? enrichTeam(tie.away.team) : null },
+      home: { ...tie.home, team: enrich(teams, tie.home.team) },
+      away: { ...tie.away, team: enrich(teams, tie.away.team) },
     }))
     .sort((a, b) => a.round - b.round || a.id - b.id);
 
-  // the resource has no slot; number ties within each round by id order
   const slotByRound = new Map<number, number>();
   for (const tie of ties) {
     const slot = (slotByRound.get(tie.round) ?? 0) + 1;
@@ -62,19 +92,18 @@ export async function liveBracket(): Promise<Bracket> {
     tie.slot = slot;
   }
 
-  return {
-    stageId: bracket.stageId,
-    champion: bracket.champion ? enrichTeam(bracket.champion) : null,
-    ties,
-  };
+  return { stageId: bracket.stageId, champion: enrich(teams, bracket.champion), ties };
 }
 
-/** The next tie with both teams confirmed — the closest thing to "next up". */
+export async function liveBracket(id: number): Promise<Bracket> {
+  const detail = await api.getTournament(id);
+  return bracketFromDetail(detail, teamMapFrom(detail));
+}
+
 function deriveNextFixture(bracket: Bracket): Fixture | null {
   const maxRound = Math.max(...bracket.ties.map((tie) => tie.round), 1);
   const tie = bracket.ties.find(
-    (candidate) =>
-      candidate.status === "ready" && candidate.home.team && candidate.away.team,
+    (candidate) => candidate.status === "ready" && candidate.home.team && candidate.away.team,
   );
   if (!tie || !tie.home.team || !tie.away.team) return null;
 
@@ -99,20 +128,79 @@ function computeStats(groups: Group[]): OverviewStat[] {
 
   return [
     { value: matches ? String(Math.round(matches)) : "—", label: "Matches played" },
-    {
-      value: matches ? (goals / matches).toFixed(1) : "—",
-      label: "Goals per match",
-    },
-    { value: String(qualified), label: "Teams through" },
+    { value: matches ? (goals / matches).toFixed(1) : "—", label: "Goals per match" },
+    { value: String(qualified || rows.length), label: "Teams through" },
   ];
 }
 
-export async function liveOverview(): Promise<OverviewData> {
-  const [groups, bracket] = await Promise.all([liveGroups(), liveBracket()]);
+export async function liveOverview(id: number): Promise<OverviewData> {
+  const detail = await api.getTournament(id);
+  const teams = teamMapFrom(detail);
+  const [groups, bracket] = await Promise.all([
+    groupsFromDetail(detail, teams),
+    bracketFromDetail(detail, teams),
+  ]);
+
   return {
-    featuredGroup: groups[0],
-    liveFixture: null, // no live-match state server-side
-    nextFixture: deriveNextFixture(bracket),
+    featuredGroup: groups[0] ?? null,
+    liveFixture: null,
+    nextFixture: bracket.ties.length ? deriveNextFixture(bracket) : null,
     stats: computeStats(groups),
+  };
+}
+
+export async function liveConsoleGroups(id: number): Promise<GroupDetail[]> {
+  const detail = await api.getTournament(id);
+  const teams = teamMapFrom(detail);
+  const stage = groupStageOf(detail);
+  if (!stage) return [];
+
+  return stage.groups.map((group) => ({
+    ...group,
+    teams: group.teams.map((team) => teams.get(team.id) ?? team),
+    fixtures: group.fixtures.map((fixture) => ({
+      ...fixture,
+      home: enrich(teams, fixture.home),
+      away: enrich(teams, fixture.away),
+    })),
+  }));
+}
+
+function shortRound(round: number, maxRound: number): string {
+  const distance = maxRound - round;
+  if (distance === 0) return "Final";
+  if (distance === 1) return "Semis";
+  if (distance === 2) return "Quarters";
+  if (distance === 3) return "R16";
+  return `R${round}`;
+}
+
+export async function liveMeta(id: number): Promise<TournamentMeta> {
+  const detail = await api.getTournament(id);
+  const knockout = knockoutStageOf(detail);
+
+  const phases: PhasePill[] = [
+    { key: "groups", label: "Groups", state: knockout ? "done" : "now" },
+  ];
+  let phaseLabel = "Group stage";
+
+  if (knockout && knockout.ties.length) {
+    const maxRound = Math.max(...knockout.ties.map((tie) => tie.round), 1);
+    for (let round = 1; round <= maxRound; round++) {
+      phases.push({
+        key: `r${round}`,
+        label: shortRound(round, maxRound),
+        state: round === 1 ? "now" : "todo",
+      });
+    }
+    phaseLabel = "Knockout";
+  }
+
+  return {
+    id: detail.id,
+    name: detail.name,
+    status: detail.status,
+    phaseLabel,
+    phases,
   };
 }

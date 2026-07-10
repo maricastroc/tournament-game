@@ -1,25 +1,20 @@
-/**
- * Live API client for tournament-game-api.
- *
- * Reads are public; the result mutation is owner-only (Sanctum bearer token),
- * uses optimistic locking via `expected_version`, and returns 409 on conflict.
- *
- * Wire notes learned from the running API:
- *   - Resource responses are wrapped: `{ "data": ... }` (standings, bracket,
- *     and the result mutation). Auth responses (`/login`, `/user`) are not.
- *   - Team objects are `{ id, name }` with names in Portuguese; the data layer
- *     enriches them to English + flags via a team catalog keyed by id.
- *   - The bracket carries no per-side scores, kickoff or live state.
- */
+import type {
+  Bracket,
+  BracketTie,
+  FixtureDetail,
+  GroupDetail,
+  GroupStageInput,
+  StageDetail,
+  StandingRow,
+  Team,
+  TieStatus,
+  TieTopology,
+  TournamentDetail,
+  TournamentStatus,
+  TournamentSummary,
+} from "@/lib/types";
 
-import type { Bracket, BracketTie, StandingRow, Team, TieStatus } from "@/lib/types";
-
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api";
-
-/* ------------------------------------------------------------------ */
-/* Raw response shapes — 1:1 with the Laravel resources                */
-/* ------------------------------------------------------------------ */
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api";
 
 interface ApiTeam {
   id: number;
@@ -56,9 +51,71 @@ interface ApiBracket {
   ties: ApiResolvedTie[];
 }
 
-/** Laravel wraps resource payloads in a top-level `data` key. */
 interface Wrapped<T> {
   data: T;
+}
+
+interface ApiTeamFull {
+  id: number;
+  name: string;
+  code: string | null;
+  flag: string | null;
+}
+
+interface ApiFixtureDetail {
+  id: number;
+  tie_id: number | null;
+  home: { id: number; name: string; flag: string | null } | null;
+  away: { id: number; name: string; flag: string | null } | null;
+  home_score: number | null;
+  away_score: number | null;
+  home_penalties: number | null;
+  away_penalties: number | null;
+  status: "scheduled" | "live" | "finished";
+  version: number;
+}
+
+interface ApiGroupDetail {
+  id: number;
+  name: string;
+  qualify_count: number;
+  teams: ApiTeamFull[];
+  fixtures: ApiFixtureDetail[];
+}
+
+interface ApiTieTopology {
+  id: number;
+  round: number;
+  slot: number;
+  home_source: string;
+  away_source: string;
+}
+
+interface ApiStageDetail {
+  id: number;
+  type: "group" | "knockout";
+  name: string;
+  position: number;
+  groups?: ApiGroupDetail[];
+  ties?: ApiTieTopology[];
+  fixtures?: ApiFixtureDetail[];
+}
+
+interface ApiTournamentDetail {
+  id: number;
+  name: string;
+  status: TournamentStatus;
+  teams: ApiTeamFull[];
+  stages: ApiStageDetail[];
+}
+
+interface ApiTournamentSummary {
+  id: number;
+  name: string;
+  status: TournamentStatus;
+  teams_count?: number;
+  stages_count?: number;
+  created_at?: string;
 }
 
 export interface AuthUser {
@@ -72,10 +129,6 @@ interface AuthResponse {
   token: string;
 }
 
-/* ------------------------------------------------------------------ */
-/* Errors                                                              */
-/* ------------------------------------------------------------------ */
-
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -86,17 +139,14 @@ export class ApiError extends Error {
     this.name = "ApiError";
   }
 
-  /** 409 — someone else edited this result first (StaleResultException). */
   get isVersionConflict(): boolean {
     return this.status === 409;
   }
 
-  /** 401/403 — token missing/expired, or not the tournament owner. */
   get isAuth(): boolean {
     return this.status === 401 || this.status === 403;
   }
 
-  /** 422 — validation. `fieldErrors` surfaces Laravel's messages. */
   get fieldErrors(): Record<string, string[]> | undefined {
     if (this.status !== 422 || typeof this.body !== "object" || this.body === null) {
       return undefined;
@@ -104,7 +154,6 @@ export class ApiError extends Error {
     return (this.body as { errors?: Record<string, string[]> }).errors;
   }
 
-  /** A single human message, best-effort. */
   get displayMessage(): string {
     if (this.isVersionConflict) {
       return "This result was changed elsewhere. Reload before editing again.";
@@ -134,7 +183,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       },
     });
   } catch (cause) {
-    // network failure / API not running
     throw new ApiError(0, "Could not reach the API.", cause);
   }
 
@@ -150,11 +198,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 function authHeader(token: string): Record<string, string> {
   return { Authorization: `Bearer ${token}` };
 }
-
-/* ------------------------------------------------------------------ */
-/* Mappers: raw → UI domain (team names stay as the API sends them;    */
-/* the data layer enriches to English + flags)                          */
-/* ------------------------------------------------------------------ */
 
 function toTeam(team: ApiTeam | null): Team | null {
   return team ? { id: team.id, name: team.name } : null;
@@ -182,7 +225,7 @@ function toBracketTie(tie: ApiResolvedTie): BracketTie {
   return {
     id: tie.id,
     round: tie.round,
-    slot: 0, // the resource has no slot; the data layer orders within a round
+    slot: 0,
     status,
     home: { team: toTeam(tie.home), score: null },
     away: { team: toTeam(tie.away), score: null },
@@ -191,12 +234,87 @@ function toBracketTie(tie: ApiResolvedTie): BracketTie {
   };
 }
 
-/* ------------------------------------------------------------------ */
-/* Public surface                                                      */
-/* ------------------------------------------------------------------ */
+function toTeamFull(team: ApiTeamFull): Team {
+  return {
+    id: team.id,
+    name: team.name,
+    code: team.code ?? undefined,
+    flag: team.flag ?? undefined,
+  };
+}
+
+function toFixtureDetail(fixture: ApiFixtureDetail): FixtureDetail {
+  const side = (team: ApiFixtureDetail["home"]): Team | null =>
+    team ? { id: team.id, name: team.name, flag: team.flag ?? undefined } : null;
+
+  return {
+    id: fixture.id,
+    tieId: fixture.tie_id,
+    home: side(fixture.home),
+    away: side(fixture.away),
+    homeScore: fixture.home_score,
+    awayScore: fixture.away_score,
+    homePenalties: fixture.home_penalties,
+    awayPenalties: fixture.away_penalties,
+    status: fixture.status,
+    version: fixture.version,
+  };
+}
+
+function toGroupDetail(group: ApiGroupDetail): GroupDetail {
+  return {
+    id: group.id,
+    name: group.name,
+    qualifyCount: group.qualify_count,
+    teams: group.teams.map(toTeamFull),
+    fixtures: group.fixtures.map(toFixtureDetail),
+  };
+}
+
+function toTieTopology(tie: ApiTieTopology): TieTopology {
+  return {
+    id: tie.id,
+    round: tie.round,
+    slot: tie.slot,
+    homeSource: tie.home_source,
+    awaySource: tie.away_source,
+  };
+}
+
+function toStageDetail(stage: ApiStageDetail): StageDetail {
+  return {
+    id: stage.id,
+    type: stage.type,
+    name: stage.name,
+    position: stage.position,
+    groups: (stage.groups ?? []).map(toGroupDetail),
+    ties: (stage.ties ?? []).map(toTieTopology),
+    fixtures: (stage.fixtures ?? []).map(toFixtureDetail),
+  };
+}
+
+function toTournamentDetail(detail: ApiTournamentDetail): TournamentDetail {
+  return {
+    id: detail.id,
+    name: detail.name,
+    status: detail.status,
+    teams: detail.teams.map(toTeamFull),
+    stages: detail.stages.map(toStageDetail),
+  };
+}
+
+function toTournamentSummary(summary: ApiTournamentSummary): TournamentSummary {
+  return {
+    id: summary.id,
+    name: summary.name,
+    status: summary.status,
+    teamsCount: summary.teams_count,
+    stagesCount: summary.stages_count,
+    createdAt: summary.created_at,
+  };
+}
 
 export const api = {
-  /* --- auth --- */
   login: (email: string, password: string) =>
     request<AuthResponse>("/login", {
       method: "POST",
@@ -214,7 +332,6 @@ export const api = {
   logout: (token: string) =>
     request<void>("/logout", { method: "POST", headers: authHeader(token) }),
 
-  /* --- public reads --- */
   standings: async (groupId: number): Promise<StandingRow[]> => {
     const { data } = await request<Wrapped<ApiStanding[]>>(`/groups/${groupId}/standings`);
     return data.map(toStandingRow);
@@ -229,8 +346,6 @@ export const api = {
     };
   },
 
-  /* --- owner write --- */
-  /** Submit a group-stage result; returns the recomputed standings. */
   submitGroupResult: async (
     token: string,
     fixtureId: number,
@@ -242,5 +357,66 @@ export const api = {
       body: JSON.stringify(payload),
     });
     return data.map(toStandingRow);
+  },
+
+  listTournaments: async (token: string): Promise<TournamentSummary[]> => {
+    const { data } = await request<Wrapped<ApiTournamentSummary[]>>("/tournaments", {
+      headers: authHeader(token),
+    });
+    return data.map(toTournamentSummary);
+  },
+
+  getTournament: async (id: number): Promise<TournamentDetail> => {
+    const { data } = await request<Wrapped<ApiTournamentDetail>>(`/tournaments/${id}`);
+    return toTournamentDetail(data);
+  },
+
+  createTournament: async (token: string, name: string): Promise<TournamentSummary> => {
+    const { data } = await request<Wrapped<ApiTournamentSummary>>("/tournaments", {
+      method: "POST",
+      headers: authHeader(token),
+      body: JSON.stringify({ name }),
+    });
+    return toTournamentSummary(data);
+  },
+
+  deleteTournament: (token: string, id: number): Promise<void> =>
+    request<void>(`/tournaments/${id}`, { method: "DELETE", headers: authHeader(token) }),
+
+  addTeams: async (
+    token: string,
+    id: number,
+    teams: Array<{ name: string; code?: string; flag?: string }>,
+  ): Promise<Team[]> => {
+    const { data } = await request<Wrapped<ApiTeamFull[]>>(`/tournaments/${id}/teams`, {
+      method: "POST",
+      headers: authHeader(token),
+      body: JSON.stringify({ teams }),
+    });
+    return data.map(toTeamFull);
+  },
+
+  buildGroupStage: async (
+    token: string,
+    id: number,
+    input: GroupStageInput,
+  ): Promise<TournamentDetail> => {
+    const { data } = await request<Wrapped<ApiTournamentDetail>>(`/tournaments/${id}/group-stage`, {
+      method: "POST",
+      headers: authHeader(token),
+      body: JSON.stringify({
+        qualify_count: input.qualifyCount,
+        groups: input.groups.map((g) => ({ name: g.name, team_ids: g.teamIds })),
+      }),
+    });
+    return toTournamentDetail(data);
+  },
+
+  buildKnockout: async (token: string, id: number): Promise<TournamentDetail> => {
+    const { data } = await request<Wrapped<ApiTournamentDetail>>(`/tournaments/${id}/knockout`, {
+      method: "POST",
+      headers: authHeader(token),
+    });
+    return toTournamentDetail(data);
   },
 };

@@ -8,7 +8,6 @@ const STYLES: Record<ResultLetter, string> = {
 
 const LABELS: Record<ResultLetter, string> = { W: "W", D: "D", L: "L" };
 
-/** The last few results as small colored chips — a glanceable momentum read. */
 export function FormChips({ form }: { form: ResultLetter[] }) {
   if (form.length === 0) return null;
   return (

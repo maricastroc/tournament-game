@@ -65,13 +65,8 @@ function Row({ row, qualified }: { row: StandingRow; qualified: boolean }) {
   );
 }
 
-/**
- * A group table that reads like broadcast graphics, not a spreadsheet: mono
- * figures, hairline rows, an amber rail marking the qualification zone, and a
- * dashed line drawn exactly at the cut.
- */
 export function StandingsTable({ group }: { group: Group }) {
-  const totalCols = 3 + NUM_COLS.length + 3; // pos, club, ...nums, gd, pts, form
+  const totalCols = 3 + NUM_COLS.length + 3;
 
   return (
     <div className="overflow-x-auto">

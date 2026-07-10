@@ -1,4 +1,3 @@
-/** A quiet key for the bracket's visual language. Clarity over decoration. */
 export function BracketLegend() {
   const items = [
     { label: "Advances", swatch: "bg-amber" },

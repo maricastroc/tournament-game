@@ -1,4 +1,3 @@
-/** A labeled input used across the sign-in and sign-up forms. */
 export function AuthField({
   label,
   type,

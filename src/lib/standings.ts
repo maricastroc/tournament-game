@@ -1,15 +1,5 @@
-/**
- * Pure standings projection — the frontend echo of the API's `GroupTable` engine.
- *
- * The product thesis: a table is *derived* from match results, never stored.
- * The Console screen leans on this — edit a score, recompute, preview the delta.
- *
- * Tiebreak order here mirrors the enum in the domain (Points, GoalDifference,
- * GoalsFor, HeadToHead, Wins), then a deterministic input order as the final
- * tiebreak (the API replaces a random draw with input order for reproducibility).
- * The recursive head-to-head mini-league is the API's authority; this client
- * copy applies the scalar chain, which is sufficient for the demo data.
- */
+// Applies the scalar tiebreak chain; the API's authority is a recursive
+// head-to-head mini-league. This scalar copy is sufficient for the demo data.
 
 import type { ResultLetter, StandingRow, Team } from "@/lib/types";
 
@@ -30,7 +20,6 @@ interface Tally {
   goalsAgainst: number;
   points: number;
   form: ResultLetter[];
-  /** Preserves input order for the final deterministic tiebreak. */
   seed: number;
 }
 

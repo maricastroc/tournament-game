@@ -59,9 +59,7 @@ function Side({ side, tie }: { side: TieSide; tie: BracketTie }) {
       </span>
 
       {side.penalties != null && (
-        <span className="ml-0.5 font-mono text-[10px] text-ink-mute">
-          ({side.penalties})
-        </span>
+        <span className="ml-0.5 font-mono text-[10px] text-ink-mute">({side.penalties})</span>
       )}
     </div>
   );
@@ -85,19 +83,13 @@ function Tag({ tie }: { tie: BracketTie }) {
   return null;
 }
 
-/**
- * One knockout tie: two stacked sides on a bordered card, with an optional
- * status tag pinned to the top edge. Live ties get a soft pulsing ring.
- */
 export function MatchCard({ tie }: { tie: BracketTie }) {
   const live = tie.status === "live";
   return (
     <div
       className={[
         "relative rounded-[11px] border bg-surface-2 p-1 transition-shadow duration-200",
-        live
-          ? "border-loss/40 shadow-[0_0_0_1px_rgba(224,107,98,0.18)]"
-          : "border-line",
+        live ? "border-loss/40 shadow-[0_0_0_1px_rgba(224,107,98,0.18)]" : "border-line",
       ].join(" ")}
     >
       <Tag tie={tie} />

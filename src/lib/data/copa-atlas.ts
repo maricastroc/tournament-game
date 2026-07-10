@@ -1,19 +1,9 @@
-/**
- * "Copa Atlas 2026" — the demo world, mirroring the API's TournamentDemoSeeder.
- *
- * Raw match results are the source of truth (the API's whole premise); group
- * tables are projected from them via `computeStandings`. Team IDs, flags and
- * codes match the seeder so this data can be swapped for the live endpoints
- * without the UI noticing.
- */
-
 import type { Team } from "@/lib/types";
 import type { RawMatch } from "@/lib/standings";
 
 export const KNOCKOUT_STAGE_ID = 2;
-export const MAX_ROUND = 3; // 1: Quartas · 2: Semis · 3: Final
+export const MAX_ROUND = 3;
 
-/** All 16 teams, keyed by the seeder's creation order (ids 1..16). */
 export const TEAMS: Record<number, Team> = {
   1: { id: 1, name: "Brazil", code: "BRA", flag: "🇧🇷" },
   2: { id: 2, name: "Japan", code: "JPN", flag: "🇯🇵" },
@@ -43,16 +33,10 @@ export interface GroupSeed {
   id: number;
   name: string;
   qualifyCount: number;
-  /** Team ids in strength order (matches the seeder). */
   teamIds: number[];
   matches: RawMatch[];
 }
 
-/**
- * The seeder's single round-robin, identical shape per group: the top two end
- * level on points, separated by goal difference — the tiebreak story.
- * Indices refer to positions within each group's `teamIds`.
- */
 const SCORELINES: Array<[number, number, number, number]> = [
   [0, 1, 1, 1],
   [0, 2, 2, 0],
@@ -84,17 +68,13 @@ export function groupSeed(id: number): GroupSeed {
   return found;
 }
 
-/* ------------------------------------------------------------------ */
-/* Knockout — the in-progress bracket, faithful to the seeder          */
-/* ------------------------------------------------------------------ */
-
 export interface TieSeed {
   id: number;
   round: number;
   slot: number;
   homeId: number | null;
   awayId: number | null;
-  homeSourceLabel?: string; // when a side is TBD but sourced
+  homeSourceLabel?: string;
   awaySourceLabel?: string;
   homeScore: number | null;
   awayScore: number | null;
@@ -106,18 +86,13 @@ export interface TieSeed {
   liveMinute?: number;
 }
 
-/**
- * Quarters from the seeder's cross-group seeding; QF3 dramatised as live so the
- * Overview has a match "em campo" and the bracket a pulsing tie — the mock's
- * energy, without contradicting the seeded pairings.
- */
 export const TIES: TieSeed[] = [
   {
     id: 1,
     round: 1,
     slot: 1,
     homeId: 1,
-    awayId: 6, // Brazil × France
+    awayId: 6,
     homeScore: 2,
     awayScore: 1,
     winnerId: 1,
@@ -128,7 +103,7 @@ export const TIES: TieSeed[] = [
     round: 1,
     slot: 2,
     homeId: 9,
-    awayId: 14, // Spain × Netherlands
+    awayId: 14,
     homeScore: 1,
     awayScore: 1,
     homePenalties: 4,
@@ -141,7 +116,7 @@ export const TIES: TieSeed[] = [
     round: 1,
     slot: 3,
     homeId: 5,
-    awayId: 2, // Argentina × Japan — live
+    awayId: 2,
     homeScore: 1,
     awayScore: 1,
     winnerId: null,
@@ -153,7 +128,7 @@ export const TIES: TieSeed[] = [
     round: 1,
     slot: 4,
     homeId: 13,
-    awayId: 10, // Portugal × Germany — scheduled
+    awayId: 10,
     homeScore: null,
     awayScore: null,
     winnerId: null,
@@ -165,7 +140,7 @@ export const TIES: TieSeed[] = [
     round: 2,
     slot: 1,
     homeId: 1,
-    awayId: 9, // Brazil × Spain (both from decided quarterfinals)
+    awayId: 9,
     homeScore: null,
     awayScore: null,
     winnerId: null,

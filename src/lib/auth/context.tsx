@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { api, type AuthUser } from "@/lib/api/client";
 
 type Status = "loading" | "authed" | "guest";
@@ -23,15 +16,8 @@ interface AuthValue {
 
 const AuthContext = createContext<AuthValue | null>(null);
 
-/** localStorage key for the Sanctum bearer token. */
 const TOKEN_KEY = "bracket.token";
 
-/**
- * Session state for the organizer. The token is a Sanctum bearer token kept in
- * localStorage; on mount we validate it against `/user` and hydrate the user,
- * clearing it if the API rejects it. Reads are public, so a guest can browse
- * everything — the token only unlocks owner actions (saving a result).
- */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>("loading");
   const [user, setUser] = useState<AuthUser | null>(null);

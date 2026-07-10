@@ -1,10 +1,5 @@
 import type { Team } from "@/lib/types";
 
-/**
- * A team's flag — emoji when we have one, otherwise a quiet monospace code
- * chip so the layout never collapses. Decorative; the team name carries the
- * accessible label.
- */
 export function Flag({
   team,
   className = "",

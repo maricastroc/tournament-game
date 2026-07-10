@@ -1,11 +1,6 @@
 import type { Team } from "@/lib/types";
 import { Flag } from "@/components/ui/Flag";
 
-/**
- * The trophy slot. Gold is reserved for exactly this — when the champion is
- * decided the card fills with a warm wash and the name lands in serif; until
- * then it waits, quietly, as "to be decided".
- */
 export function ChampionCard({ champion }: { champion: Team | null }) {
   const decided = champion !== null;
 
@@ -30,9 +25,7 @@ export function ChampionCard({ champion }: { champion: Team | null }) {
           {champion.name}
         </div>
       ) : (
-        <div className="mt-1 font-serif text-[15px] italic text-ink-mute">
-          to be decided
-        </div>
+        <div className="mt-1 font-serif text-[15px] italic text-ink-mute">to be decided</div>
       )}
     </div>
   );

@@ -1,21 +1,24 @@
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { ConsoleScreen } from "@/components/console/ConsoleScreen";
-import { getConsoleScenario } from "@/lib/data";
+import { getConsoleGroups } from "@/lib/data";
+import { getCurrentTournamentId } from "@/lib/tournament/current";
 
 export const metadata: Metadata = { title: "Console" };
+export const dynamic = "force-dynamic";
 
-export default function ConsolePage() {
-  const scenario = getConsoleScenario();
+export default async function ConsolePage() {
+  const tournamentId = await getCurrentTournamentId();
+  const groups = await getConsoleGroups(tournamentId);
 
   return (
     <div className="pb-8">
       <PageHeading
-        eyebrow={`Console · Group ${scenario.groupName}`}
+        eyebrow="Console"
         title="Edit a result"
-        subtitle="Adjust the score and watch the consequence recalculate — tiebreak and standings — before it's saved."
+        subtitle="Pick a match, adjust the score, and watch the group table recalculate — then save it, atomically."
       />
-      <ConsoleScreen scenario={scenario} />
+      <ConsoleScreen groups={groups} />
     </div>
   );
 }
