@@ -17,10 +17,11 @@ export function AuthShell({
       <div className="animate-fade-up">
         <Link
           href="/"
-          aria-label="Bracket — home"
-          className="mb-8 inline-grid h-[38px] w-[38px] place-items-center rounded-[10px] bg-gradient-to-br from-amber to-[#C9791F] font-serif text-[18px] font-extrabold text-[#1a1205] shadow-[0_4px_14px_-4px_rgba(242,169,59,0.6)]"
+          aria-label="Gauntlet — home"
+          className="mb-8 inline-block h-[38px] w-[38px] overflow-hidden rounded-[10px] shadow-[0_4px_14px_-4px_rgba(242,169,59,0.5)]"
         >
-          B
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icon.svg" alt="" className="h-full w-full" />
         </Link>
 
         <p className="eyebrow text-amber">{eyebrow}</p>

@@ -18,13 +18,14 @@ export function Rail() {
     >
       <Link
         href="/"
-        aria-label="Bracket — home"
+        aria-label="Gauntlet — home"
         data-tooltip-id="app-tooltip"
         data-tooltip-content="Home"
         data-tooltip-place="right"
-        className="mb-0 grid h-8.5 w-8.5 place-items-center rounded-[9px] bg-linear-to-br from-amber to-[#C9791F] font-serif text-[17px] font-extrabold text-[#1a1205] shadow-[0_4px_14px_-4px_rgba(242,169,59,0.6)] transition-transform duration-200 hover:scale-105 md:mb-3.5"
+        className="mb-0 block h-8.5 w-8.5 overflow-hidden rounded-[9px] shadow-[0_4px_14px_-4px_rgba(242,169,59,0.5)] transition-transform duration-200 hover:scale-105 md:mb-3.5"
       >
-        B
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/icon.svg" alt="" className="h-full w-full" />
       </Link>
 
       {NAV_ITEMS.map((item) => {

@@ -1,0 +1,34 @@
+<svg width="680" height="300" viewBox="0 0 680 300" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Gauntlet</title>
+  <desc>Dark trophy emblem on an amber tile beside the Gauntlet wordmark.</desc>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2a93b"/>
+      <stop offset="1" stop-color="#c9791f"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="40" y="40" width="180" height="180" rx="42" fill="url(#g)"/>
+
+  <g stroke="#1a1205" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.32">
+    <path d="M70 96 h20 v18 h16"/>
+    <path d="M70 164 h20 v-18 h16"/>
+    <path d="M190 96 h-20 v18 h-16"/>
+    <path d="M190 164 h-20 v-18 h-16"/>
+  </g>
+
+  <g fill="#1a1205">
+    <path d="M112 92 h36 v14 c0 20 -8 34 -18 34 c-10 0 -18 -14 -18 -34 z"/>
+    <rect x="126" y="140" width="8" height="18"/>
+    <path d="M110 158 h40 c2 0 3 2 3 4 v6 h-46 v-6 c0 -2 1 -4 3 -4 z"/>
+  </g>
+  <g fill="none" stroke="#1a1205" stroke-width="5" stroke-linecap="round">
+    <path d="M112 96 c-16 0 -20 22 -6 30"/>
+    <path d="M148 96 c16 0 20 22 6 30"/>
+  </g>
+  <rect x="118" y="168" width="24" height="6" rx="3" fill="#1a1205" opacity="0.55"/>
+
+  <text x="256" y="128" font-family="Geist, system-ui, sans-serif" font-size="62" font-weight="600" letter-spacing="1" fill="#eaf0ee">Gauntlet</text>
+  <rect x="258" y="150" width="300" height="3" rx="1.5" fill="#f2a93b"/>
+  <text x="258" y="182" font-family="Geist, system-ui, sans-serif" font-size="19" font-weight="400" letter-spacing="3" fill="#6e7c79">RUN THE BRACKET, LIFT THE CUP</text>
+</svg>

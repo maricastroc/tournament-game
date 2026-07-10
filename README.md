@@ -1,6 +1,7 @@
-# tournament-game (frontend)
+# Gauntlet (frontend)
 
-The operator UI for [`tournament-game-api`](../tournament-game-api) — a premium
+**Gauntlet** — run the bracket, lift the cup. The operator UI for
+[`tournament-game-api`](../tournament-game-api) — a premium
 tournament-management product. The thesis of the API is that **state is a
 projection, not a stored value**: standings, tiebreaks and knockout advancement
 are _derived_ from match results. This frontend makes that legible — you edit a

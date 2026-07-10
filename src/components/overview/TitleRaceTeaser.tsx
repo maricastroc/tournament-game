@@ -7,7 +7,6 @@ import { Flag } from "@/components/ui/Flag";
 export function TitleRaceTeaser({ odds }: { odds: TitleOdd[] }) {
   const top = odds.slice(0, 3);
   if (top.length === 0) return null;
-  const max = top[0].prob || 1;
 
   return (
     <div className="rounded-[11px] border border-line bg-surface-2 p-4">
@@ -32,7 +31,7 @@ export function TitleRaceTeaser({ odds }: { odds: TitleOdd[] }) {
             <span className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-surface-3">
               <span
                 className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber/60 to-amber"
-                style={{ width: `${Math.max(4, (odd.prob / max) * 100)}%` }}
+                style={{ width: `${Math.max(4, odd.prob * 100)}%` }}
               />
             </span>
             <span className="w-9 shrink-0 text-right font-mono text-[12px] tabular-nums text-amber-ink">

@@ -21,7 +21,7 @@ interface ApiTeam {
   name: string;
 }
 
-interface ApiStanding {
+export interface ApiStanding {
   position: number;
   team: ApiTeam;
   played: number;
@@ -203,7 +203,7 @@ function toTeam(team: ApiTeam | null): Team | null {
   return team ? { id: team.id, name: team.name } : null;
 }
 
-function toStandingRow(row: ApiStanding): StandingRow {
+export function toStandingRow(row: ApiStanding): StandingRow {
   return {
     position: row.position,
     team: { id: row.team.id, name: row.team.name },

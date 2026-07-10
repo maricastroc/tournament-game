@@ -25,8 +25,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Bracket — Copa Atlas 2026",
-    template: "%s · Bracket",
+    default: "Gauntlet — Copa Atlas 2026",
+    template: "%s · Gauntlet",
   },
   description:
     "Run a tournament like you're calling it. Standings, tiebreaks and knockout always coherent.",
