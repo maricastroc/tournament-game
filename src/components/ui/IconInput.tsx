@@ -30,7 +30,7 @@ export function IconInput({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`w-full pl-9 pr-9 ${className}`}
+        className={`w-full pl-9 pr-9 focus:shadow-[0_0_0_3px_var(--color-amber-soft)] ${className}`}
         {...rest}
       />
       {value.length > 0 && (

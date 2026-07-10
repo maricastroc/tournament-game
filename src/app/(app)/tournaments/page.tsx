@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { ArrowRight, Plus, Trash2, Trophy } from "lucide-react";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { relativeDate } from "@/lib/format";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/context";
 import { setCurrentTournamentCookie } from "@/lib/tournament/select";
@@ -69,7 +70,7 @@ export default function TournamentsPage() {
           status === "authed" ? (
             <Link
               href="/tournaments/new"
-              className="inline-flex items-center gap-2 rounded-[10px] bg-amber px-4 py-2.5 text-[13px] font-bold text-[#1a1205] shadow-[0_8px_22px_-8px_rgba(242,169,59,0.6)] transition-all duration-150 hover:brightness-105 active:scale-[0.99]"
+              className="inline-flex items-center gap-2 rounded-[10px] bg-amber px-4 py-2.5 text-[13px] font-bold text-[#1a1205] shadow-[0_8px_22px_-8px_rgba(242,169,59,0.6)] transition-all duration-150 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_12px_26px_-8px_rgba(242,169,59,0.72)] active:translate-y-0 active:scale-[0.99]"
             >
               <Plus className="h-4 w-4" />
               New tournament
@@ -145,10 +146,17 @@ function TournamentCard({
   onView: () => void;
   onDelete?: () => void;
 }) {
+  const { teamsCount, stagesCount, createdAt } = tournament;
+  const stageLabel =
+    stagesCount == null ? null : stagesCount >= 2 ? "Groups + Knockout" : "Group stage";
+  const meta = [teamsCount != null ? `${teamsCount} teams` : null, stageLabel]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <div className="flex flex-col justify-between rounded-[13px] border border-line bg-surface-2/60 p-5 transition-colors duration-150 hover:border-line-2">
+    <div className="group flex flex-col justify-between rounded-[14px] border border-line bg-surface-2/60 p-5 shadow-[0_10px_30px_-22px_rgba(0,0,0,0.9)] transition-all duration-200 hover:-translate-y-0.5 hover:border-line-2 hover:bg-surface-2/80 hover:shadow-[0_18px_42px_-22px_rgba(0,0,0,0.95)]">
       <div>
-        <div className="mb-2 flex items-center gap-2">
+        <div className="mb-2.5 flex items-center gap-2">
           <StatusChip status={tournament.status} />
           {isDemo && (
             <span className="rounded-full border border-line-2 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.12em] text-ink-mute">
@@ -156,12 +164,18 @@ function TournamentCard({
             </span>
           )}
         </div>
-        <h2 className="font-serif text-[19px] font-semibold leading-tight tracking-[-0.01em]">
-          {tournament.name}
+        <h2 className="flex items-center gap-2 font-serif text-[19px] font-semibold leading-tight tracking-[-0.01em]">
+          <Trophy className="h-[18px] w-[18px] shrink-0 text-amber-ink/70" />
+          <span className="truncate">{tournament.name}</span>
         </h2>
-        {(tournament.teamsCount != null || tournament.stagesCount != null) && (
-          <p className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-mute">
-            {tournament.teamsCount ?? 0} teams · {tournament.stagesCount ?? 0} stages
+        {meta && (
+          <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.08em] text-ink-mute">
+            {meta}
+          </p>
+        )}
+        {createdAt && (
+          <p className="mt-1 font-mono text-[10.5px] tracking-[0.06em] text-ink-mute/70">
+            Created {relativeDate(createdAt)}
           </p>
         )}
       </div>
@@ -170,16 +184,17 @@ function TournamentCard({
         <button
           type="button"
           onClick={onView}
-          className="flex-1 rounded-[9px] border border-line-2 bg-surface-3 px-3 py-2 text-[12.5px] font-semibold text-ink transition-colors duration-150 hover:border-amber-line hover:text-amber-ink"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-[9px] border border-line-2 bg-surface-3 px-3 py-2.5 text-[12.5px] font-semibold text-ink transition-colors duration-150 hover:border-amber-line hover:bg-amber-soft hover:text-amber-ink"
         >
           Open
+          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
         </button>
         {onDelete && (
           <button
             type="button"
             onClick={onDelete}
             aria-label={`Delete ${tournament.name}`}
-            className="grid h-[34px] w-[34px] place-items-center rounded-[9px] border border-line text-ink-mute transition-colors duration-150 hover:border-loss/40 hover:text-loss"
+            className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-[9px] border border-line text-ink-mute transition-colors duration-150 hover:border-loss/40 hover:text-loss"
           >
             <Trash2 className="h-4 w-4" />
           </button>

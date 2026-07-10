@@ -12,7 +12,7 @@ export function PageHeading({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 px-5 pb-2 pt-6 sm:px-6 sm:pt-7">
+    <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 px-5 pb-2 pt-6 sm:px-6 sm:pt-7">
       <div className="min-w-0">
         <p className="eyebrow flex items-center gap-2.5 text-amber">
           <span className="text-amber">{eyebrow}</span>

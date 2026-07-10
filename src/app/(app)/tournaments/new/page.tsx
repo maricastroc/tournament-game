@@ -12,7 +12,6 @@ import { api, ApiError } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/context";
 import { setCurrentTournamentCookie } from "@/lib/tournament/select";
 import {
-  distribute,
   groupOptions,
   isBracketValid,
   GROUP_LETTERS,
@@ -90,8 +89,8 @@ export default function NewTournamentPage() {
     }
   }
 
-  async function generate() {
-    const groups = distribute(created, numGroups).map((teamIds, index) => ({
+  async function generate(teamIdsByGroup: number[][]) {
+    const groups = teamIdsByGroup.map((teamIds, index) => ({
       name: GROUP_LETTERS[index],
       teamIds,
     }));
@@ -119,7 +118,7 @@ export default function NewTournamentPage() {
         subtitle="Name it, add the teams, split them into groups — we generate the fixtures and the bracket."
       />
 
-      <div className="mx-auto max-w-[640px] px-5 sm:px-6">
+      <div className="max-w-[720px] px-5 sm:px-6">
         <Steps step={step} />
 
         {error && (
@@ -147,6 +146,7 @@ export default function NewTournamentPage() {
 
         {step === 3 && (
           <GroupsStep
+            key={numGroups}
             teams={created}
             numGroups={numGroups}
             setNumGroups={setNumGroups}
