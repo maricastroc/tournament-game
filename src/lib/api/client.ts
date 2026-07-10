@@ -6,6 +6,7 @@ import type {
   GroupDetail,
   GroupStageInput,
   StageDetail,
+  ScenarioProjection,
   StandingRow,
   Team,
   TieStatus,
@@ -50,6 +51,27 @@ interface ApiResolvedTie {
 interface ApiBracket {
   champion: ApiTeam | null;
   ties: ApiResolvedTie[];
+}
+
+interface ApiScenarioGroup {
+  id: number;
+  name: string;
+  qualify_count: number;
+  standings: ApiStanding[];
+}
+
+interface ApiScenario {
+  groups: ApiScenarioGroup[];
+  bracket: ApiBracket | null;
+}
+
+/** A single hypothetical result posted to the "what if?" endpoint. */
+export interface ScenarioInput {
+  fixture_id: number;
+  home_score: number;
+  away_score: number;
+  home_penalties?: number | null;
+  away_penalties?: number | null;
 }
 
 interface Wrapped<T> {
@@ -344,6 +366,34 @@ export const api = {
       stageId,
       champion: toTeam(data.champion),
       ties: data.ties.map(toBracketTie),
+    };
+  },
+
+  // "What if?": posts a set of hypothetical results and gets back the projected
+  // standings + bracket. The API writes nothing — it is a pure projection — so this
+  // is a public, unauthenticated read that reuses the live standings/bracket shapes.
+  projectScenario: async (
+    tournamentId: number,
+    results: ScenarioInput[],
+  ): Promise<ScenarioProjection> => {
+    const { data } = await request<Wrapped<ApiScenario>>(`/tournaments/${tournamentId}/scenario`, {
+      method: "POST",
+      body: JSON.stringify({ results }),
+    });
+    return {
+      groups: data.groups.map((group) => ({
+        id: group.id,
+        name: group.name,
+        qualifyCount: group.qualify_count,
+        standings: group.standings.map(toStandingRow),
+      })),
+      bracket: data.bracket
+        ? {
+            stageId: 0,
+            champion: toTeam(data.bracket.champion),
+            ties: data.bracket.ties.map(toBracketTie),
+          }
+        : null,
     };
   },
 

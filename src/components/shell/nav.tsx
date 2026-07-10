@@ -1,5 +1,12 @@
 import type { ReactNode } from "react";
-import { GitFork, LayoutDashboard, ListOrdered, SlidersHorizontal, Trophy } from "lucide-react";
+import {
+  FlaskConical,
+  GitFork,
+  LayoutDashboard,
+  ListOrdered,
+  SlidersHorizontal,
+  Trophy,
+} from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -12,5 +19,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/standings", label: "Standings", icon: <ListOrdered /> },
   { href: "/bracket", label: "Bracket", icon: <GitFork /> },
   { href: "/console", label: "Console", icon: <SlidersHorizontal /> },
+  { href: "/what-if", label: "What if?", icon: <FlaskConical /> },
   { href: "/tournaments", label: "Tournaments", icon: <Trophy /> },
 ];

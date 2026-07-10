@@ -74,6 +74,11 @@ export interface TieSeed {
   slot: number;
   homeId: number | null;
   awayId: number | null;
+  // Group-stage seed each round-one side is drawn from (e.g. "A1", "B2") — mirrors the
+  // backend's `home_source`, and lets the offline what-if reseed the bracket from projected
+  // standings instead of the frozen ids below.
+  homeSeed?: string;
+  awaySeed?: string;
   homeSourceLabel?: string;
   awaySourceLabel?: string;
   homeScore: number | null;
@@ -93,6 +98,8 @@ export const TIES: TieSeed[] = [
     slot: 1,
     homeId: 1,
     awayId: 6,
+    homeSeed: "A1",
+    awaySeed: "B2",
     homeScore: 2,
     awayScore: 1,
     winnerId: 1,
@@ -104,6 +111,8 @@ export const TIES: TieSeed[] = [
     slot: 2,
     homeId: 9,
     awayId: 14,
+    homeSeed: "C1",
+    awaySeed: "D2",
     homeScore: 1,
     awayScore: 1,
     homePenalties: 4,
@@ -117,6 +126,8 @@ export const TIES: TieSeed[] = [
     slot: 3,
     homeId: 5,
     awayId: 2,
+    homeSeed: "B1",
+    awaySeed: "A2",
     homeScore: 1,
     awayScore: 1,
     winnerId: null,
@@ -129,6 +140,8 @@ export const TIES: TieSeed[] = [
     slot: 4,
     homeId: 13,
     awayId: 10,
+    homeSeed: "D1",
+    awaySeed: "C2",
     homeScore: null,
     awayScore: null,
     winnerId: null,
