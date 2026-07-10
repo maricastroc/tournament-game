@@ -20,7 +20,7 @@ export default async function OverviewPage() {
       <PageHeading
         eyebrow="Today"
         title="What needs your attention"
-        subtitle="The match on the pitch now, the next one to decide, and where the table is tightest — gathered in one place."
+        subtitle="The next match to decide, the group where qualification is tightest, and the race for the trophy — in one place."
       />
 
       <div className="grid grid-cols-1 gap-y-8 px-5 pt-4 sm:px-6 lg:grid-cols-[1.5fr_1fr] lg:gap-x-8 lg:gap-y-0">

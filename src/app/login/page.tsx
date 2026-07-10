@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
-import { ApiError } from "@/lib/api/client";
+import { notifyApiError } from "@/lib/toast";
 import { AuthField } from "@/components/auth/AuthField";
-import { AuthError, AuthShell, AuthSubmit } from "@/components/auth/AuthShell";
+import { AuthShell, AuthSubmit } from "@/components/auth/AuthShell";
 
 export default function LoginPage() {
   const { login, status } = useAuth();
@@ -15,7 +15,6 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("demo@bracket.test");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const destination = () => new URLSearchParams(window.location.search).get("from") || "/";
@@ -27,13 +26,12 @@ export default function LoginPage() {
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSubmitting(true);
-    setError(null);
     try {
       await login(email, password);
       router.replace(destination());
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiError ? err.displayMessage : "Could not reach the API.");
+      notifyApiError(err);
       setSubmitting(false);
     }
   }
@@ -63,8 +61,6 @@ export default function LoginPage() {
           icon={Lock}
           onChange={setPassword}
         />
-
-        {error && <AuthError message={error} />}
 
         <AuthSubmit disabled={submitting || !password}>
           {submitting ? "Signing in…" : "Sign in"}

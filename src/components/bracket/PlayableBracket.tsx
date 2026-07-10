@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Bracket as BracketData, BracketTie, Team } from "@/lib/types";
 import { roundName, roundTag } from "@/lib/format";
-import { api, ApiError } from "@/lib/api/client";
+import toast from "react-hot-toast";
+import { api } from "@/lib/api/client";
+import { notifyApiError } from "@/lib/toast";
 import { useAuth } from "@/lib/auth/context";
 import {
   childOf,
@@ -30,7 +32,6 @@ export function PlayableBracket({ initial }: { initial: BracketData }) {
 
   const [results, setResults] = useState<TieResults>(new Map());
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Live brackets arrive already resolved by the server; the demo resolves locally.
@@ -73,13 +74,12 @@ export function PlayableBracket({ initial }: { initial: BracketData }) {
 
   async function confirmLive(tie: BracketTie, result: TieResult) {
     if (!authed || !token) {
-      setError("Sign in as the organizer to save knockout results.");
+      toast.error("Sign in as the organizer to save knockout results.");
       return;
     }
     if (tie.fixtureId == null) return;
 
     setSaving(true);
-    setError(null);
     const pens = penaltiesFor(result);
     try {
       const updated = await api.submitKnockoutResult(token, tie.fixtureId, {
@@ -92,7 +92,7 @@ export function PlayableBracket({ initial }: { initial: BracketData }) {
       router.refresh();
       setSelectedId(nextReadyId(updated.ties));
     } catch (err) {
-      setError(err instanceof ApiError ? err.displayMessage : "Could not reach the API.");
+      notifyApiError(err);
     } finally {
       setSaving(false);
     }
@@ -143,11 +143,6 @@ export function PlayableBracket({ initial }: { initial: BracketData }) {
             onConfirm={confirm}
             onClose={() => setSelectedId(null)}
           />
-          {error && (
-            <p role="alert" className="mt-2 text-center font-mono text-[11.5px] text-loss">
-              {error}
-            </p>
-          )}
         </div>
       )}
 

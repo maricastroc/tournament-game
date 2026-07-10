@@ -44,14 +44,3 @@ export function AuthSubmit({ children, disabled }: { children: ReactNode; disabl
     </button>
   );
 }
-
-export function AuthError({ message }: { message: string }) {
-  return (
-    <p
-      role="alert"
-      className="rounded-[9px] border border-loss/35 bg-loss/[0.08] px-3.5 py-2.5 text-[13px] text-loss"
-    >
-      {message}
-    </p>
-  );
-}

@@ -8,7 +8,8 @@ import { NameStep } from "@/components/tournaments/NameStep";
 import { TeamsStep } from "@/components/tournaments/TeamsStep";
 import { GroupsStep } from "@/components/tournaments/GroupsStep";
 import { Steps } from "@/components/tournaments/wizard";
-import { api, ApiError } from "@/lib/api/client";
+import { api } from "@/lib/api/client";
+import { notifyApiError } from "@/lib/toast";
 import { useAuth } from "@/lib/auth/context";
 import { setCurrentTournamentCookie } from "@/lib/tournament/select";
 import {
@@ -33,7 +34,6 @@ export default function NewTournamentPage() {
   const [qualifyCount, setQualifyCount] = useState(2);
   const [withKnockout, setWithKnockout] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   if (status !== "authed" || !token) {
     return (
@@ -57,11 +57,10 @@ export default function NewTournamentPage() {
 
   async function run<T>(fn: () => Promise<T>): Promise<T | undefined> {
     setBusy(true);
-    setError(null);
     try {
       return await fn();
     } catch (err) {
-      setError(err instanceof ApiError ? err.displayMessage : "Could not reach the API.");
+      notifyApiError(err);
       return undefined;
     } finally {
       setBusy(false);
@@ -120,15 +119,6 @@ export default function NewTournamentPage() {
 
       <div className={`${step === 1 ? "max-w-[720px]" : "max-w-[960px]"} px-5 pt-4 sm:px-6`}>
         <Steps step={step} />
-
-        {error && (
-          <p
-            role="alert"
-            className="mb-5 rounded-[9px] border border-loss/35 bg-loss/[0.08] px-3.5 py-2.5 text-[13px] text-loss"
-          >
-            {error}
-          </p>
-        )}
 
         {step === 1 && (
           <NameStep name={name} onNameChange={setName} busy={busy} onSubmit={createAndContinue} />

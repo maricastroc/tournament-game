@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import type { FixtureDetail, GroupDetail } from "@/lib/types";
 import { computeStandings } from "@/lib/standings";
 import { groupRawMatches } from "@/lib/console";
-import { api, ApiError } from "@/lib/api/client";
+import { api } from "@/lib/api/client";
+import { notifyApiError } from "@/lib/toast";
 import { useAuth } from "@/lib/auth/context";
 
 export function useFixtureResult(fixture: FixtureDetail, group: GroupDetail) {
@@ -18,7 +19,6 @@ export function useFixtureResult(fixture: FixtureDetail, group: GroupDetail) {
   const [version, setVersion] = useState(fixture.version);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const changed = home !== (fixture.homeScore ?? 0) || away !== (fixture.awayScore ?? 0);
   const dirty = fixture.status !== "finished" || changed;
@@ -33,7 +33,6 @@ export function useFixtureResult(fixture: FixtureDetail, group: GroupDetail) {
   async function confirm() {
     if (!authed || !token) return;
     setSaving(true);
-    setError(null);
     try {
       await api.submitGroupResult(token, fixture.id, {
         home_score: home,
@@ -44,7 +43,7 @@ export function useFixtureResult(fixture: FixtureDetail, group: GroupDetail) {
       setSaved(true);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiError ? err.displayMessage : "Could not reach the API.");
+      notifyApiError(err);
     } finally {
       setSaving(false);
     }
@@ -59,7 +58,6 @@ export function useFixtureResult(fixture: FixtureDetail, group: GroupDetail) {
     version,
     saving,
     saved,
-    error,
     dirty,
     base,
     preview,

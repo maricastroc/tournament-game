@@ -1,11 +1,11 @@
-import { computeStandings, type RawMatch } from "@/lib/standings";
-import { forecastGroup } from "@/lib/forecast/groups";
+import { computeStandings } from "@/lib/standings";
 import { titleOddsFrom } from "@/lib/forecast/bracket";
+import { attachOutlookToGroups } from "./outlook";
+import { pickFeaturedGroup, pickNextFixture } from "@/lib/overview";
 import type {
   Bracket,
   BracketTie,
   Fixture,
-  FixtureDetail,
   Group,
   OverviewData,
   TieSide,
@@ -16,7 +16,6 @@ import {
   KNOCKOUT_STAGE_ID,
   TIES,
   TOURNAMENT,
-  groupSeed,
   team,
   type GroupSeed,
   type TieSeed,
@@ -144,35 +143,20 @@ function demoLiveFixture(): Fixture | null {
   };
 }
 
-function demoNextFixture(): Fixture | null {
-  const seed = TIES.find((tie) => tie.status === "ready" && tie.round === 1);
-  if (!seed || seed.homeId == null || seed.awayId == null) return null;
-  return {
-    id: seed.id,
-    home: team(seed.homeId),
-    away: team(seed.awayId),
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    kickoff: seed.kickoff,
-    groupName: "Quarterfinals · QF4",
-    note: "the winner meets the winner of Brazil × Spain",
-    version: 0,
-  };
-}
-
 function demoOverview(): OverviewData {
-  const groups = demoGroups();
+  const bracket = demoBracket();
+  const groups = attachOutlookToGroups(demoGroups(), [], DEMO_TOURNAMENT_ID);
+  const featured = pickFeaturedGroup(groups);
   return {
-    featuredGroup: demoGroup(groupSeed(1)),
+    featuredGroup: featured,
     liveFixture: demoLiveFixture(),
-    nextFixture: demoNextFixture(),
+    nextFixture: pickNextFixture([], featured, bracket),
     stats: [
       { value: "26", label: "Matches played" },
       { value: "2.2", label: "Goals per match" },
       { value: String(groups.length * 2), label: "Teams through" },
     ],
-    titleOdds: titleOddsFrom(demoBracket(), groups),
+    titleOdds: titleOddsFrom(bracket, groups),
   };
 }
 
@@ -200,60 +184,8 @@ export function getConsoleGroups(id: number): Promise<GroupDetail[]> {
   );
 }
 
-function toRawMatch(fixture: FixtureDetail): RawMatch | null {
-  if (!fixture.home || !fixture.away || fixture.homeScore == null || fixture.awayScore == null) {
-    return null;
-  }
-  return {
-    homeId: fixture.home.id,
-    awayId: fixture.away.id,
-    homeScore: fixture.homeScore,
-    awayScore: fixture.awayScore,
-  };
-}
-
-function attachOutlook(group: Group, detail: GroupDetail | undefined, tournamentId: number): Group {
-  const remaining = (detail?.fixtures ?? [])
-    .filter((fixture) => fixture.status !== "finished" && fixture.home && fixture.away)
-    .map((fixture): [number, number] => [fixture.home!.id, fixture.away!.id]);
-
-  // Settled group (or no fixture data): the table is final — clinch/eliminate by rank.
-  if (remaining.length === 0) {
-    return {
-      ...group,
-      standings: group.standings.map((row, index) => ({
-        ...row,
-        advanceProb: index < group.qualifyCount ? 1 : 0,
-        outlook: index < group.qualifyCount ? ("clinched" as const) : ("eliminated" as const),
-      })),
-    };
-  }
-
-  const played = (detail?.fixtures ?? [])
-    .map(toRawMatch)
-    .filter((match): match is RawMatch => match !== null);
-
-  const forecast = forecastGroup({
-    key: `${tournamentId}:${group.id}:${played.length}`,
-    teams: detail?.teams ?? group.standings.map((row) => row.team),
-    played,
-    remaining,
-    qualifyCount: group.qualifyCount,
-  });
-
-  return {
-    ...group,
-    standings: group.standings.map((row) => ({
-      ...row,
-      advanceProb: forecast.advanceProb.get(row.team.id) ?? 0,
-      outlook: forecast.outlook.get(row.team.id) ?? "contending",
-    })),
-  };
-}
-
 // Standings enriched with a qualification forecast per team (for the standings screen).
 export async function getStandingsView(id: number): Promise<Group[]> {
   const [groups, consoleGroups] = await Promise.all([getGroups(id), getConsoleGroups(id)]);
-  const detailById = new Map(consoleGroups.map((group) => [group.id, group]));
-  return groups.map((group) => attachOutlook(group, detailById.get(group.id), id));
+  return attachOutlookToGroups(groups, consoleGroups, id);
 }

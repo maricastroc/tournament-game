@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, User } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
-import { ApiError } from "@/lib/api/client";
+import { notifyApiError } from "@/lib/toast";
 import { AuthField } from "@/components/auth/AuthField";
-import { AuthError, AuthShell, AuthSubmit } from "@/components/auth/AuthShell";
+import { AuthShell, AuthSubmit } from "@/components/auth/AuthShell";
 
 export default function RegisterPage() {
   const { register, status } = useAuth();
@@ -16,7 +16,6 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const destination = () => new URLSearchParams(window.location.search).get("from") || "/";
@@ -30,13 +29,12 @@ export default function RegisterPage() {
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSubmitting(true);
-    setError(null);
     try {
       await register(name.trim(), email.trim(), password);
       router.replace(destination());
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiError ? err.displayMessage : "Could not reach the API.");
+      notifyApiError(err);
       setSubmitting(false);
     }
   }
@@ -86,8 +84,6 @@ export default function RegisterPage() {
               : "8 characters minimum"}
           </span>
         </div>
-
-        {error && <AuthError message={error} />}
 
         <AuthSubmit disabled={submitting || !valid}>
           {submitting ? "Creating account…" : "Create account"}

@@ -11,8 +11,7 @@ interface ResultEditorProps {
 }
 
 export function ResultEditor({ fixture, result }: ResultEditorProps) {
-  const { authed, home, away, setHome, setAway, version, saving, saved, error, dirty, confirm } =
-    result;
+  const { authed, home, away, setHome, setAway, version, saving, saved, dirty, confirm } = result;
 
   return (
     <div className="mt-4">
@@ -38,15 +37,6 @@ export function ResultEditor({ fixture, result }: ResultEditorProps) {
         >
           Sign in to save results
         </Link>
-      )}
-
-      {error && (
-        <p
-          role="alert"
-          className="mt-3 rounded-[9px] border border-loss/35 bg-loss/8 px-3 py-2 text-center text-[12px] text-loss"
-        >
-          {error}
-        </p>
       )}
 
       <p className="mt-3 text-center font-mono text-[11.5px] text-ink-mute">

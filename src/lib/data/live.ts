@@ -1,10 +1,11 @@
 import { api } from "@/lib/api/client";
-import { roundName, roundTag } from "@/lib/format";
+import { roundTag } from "@/lib/format";
 import { titleOddsFrom } from "@/lib/forecast/bracket";
+import { attachOutlookToGroups } from "./outlook";
+import { pickFeaturedGroup, pickNextFixture } from "@/lib/overview";
 import type {
   Bracket,
   BracketTie,
-  Fixture,
   FixtureDetail,
   Group,
   GroupDetail,
@@ -135,26 +136,6 @@ export async function liveBracket(id: number): Promise<Bracket> {
   return bracketFromDetail(detail, teamMapFrom(detail));
 }
 
-function deriveNextFixture(bracket: Bracket): Fixture | null {
-  const maxRound = Math.max(...bracket.ties.map((tie) => tie.round), 1);
-  const tie = bracket.ties.find(
-    (candidate) => candidate.status === "ready" && candidate.home.team && candidate.away.team,
-  );
-  if (!tie || !tie.home.team || !tie.away.team) return null;
-
-  return {
-    id: tie.id,
-    home: tie.home.team,
-    away: tie.away.team,
-    homeScore: null,
-    awayScore: null,
-    status: "scheduled",
-    groupName: `${roundName(tie.round, maxRound)} · next up`,
-    note: "both teams confirmed — awaiting kickoff",
-    version: 0,
-  };
-}
-
 function computeStats(groups: Group[]): OverviewStat[] {
   const rows = groups.flatMap((group) => group.standings);
   const matches = rows.reduce((sum, row) => sum + row.played, 0) / 2;
@@ -176,18 +157,20 @@ export async function liveOverview(id: number): Promise<OverviewData> {
     bracketFromDetail(detail, teams),
   ]);
 
+  const consoleGroups = consoleGroupsFromDetail(detail, teams);
+  const withOutlook = attachOutlookToGroups(groups, consoleGroups, id);
+  const featured = pickFeaturedGroup(withOutlook);
+
   return {
-    featuredGroup: groups[0] ?? null,
+    featuredGroup: featured,
     liveFixture: null,
-    nextFixture: bracket.ties.length ? deriveNextFixture(bracket) : null,
+    nextFixture: pickNextFixture(consoleGroups, featured, bracket),
     stats: computeStats(groups),
     titleOdds: titleOddsFrom(bracket, groups),
   };
 }
 
-export async function liveConsoleGroups(id: number): Promise<GroupDetail[]> {
-  const detail = await api.getTournament(id);
-  const teams = teamMapFrom(detail);
+function consoleGroupsFromDetail(detail: TournamentDetail, teams: TeamMap): GroupDetail[] {
   const stage = groupStageOf(detail);
   if (!stage) return [];
 
@@ -200,6 +183,11 @@ export async function liveConsoleGroups(id: number): Promise<GroupDetail[]> {
       away: enrich(teams, fixture.away),
     })),
   }));
+}
+
+export async function liveConsoleGroups(id: number): Promise<GroupDetail[]> {
+  const detail = await api.getTournament(id);
+  return consoleGroupsFromDetail(detail, teamMapFrom(detail));
 }
 
 function shortRound(round: number, maxRound: number): string {
