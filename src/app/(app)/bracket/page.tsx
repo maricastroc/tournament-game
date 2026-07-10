@@ -4,7 +4,9 @@ import { ArrowRight } from "lucide-react";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { PlayableBracket } from "@/components/bracket/PlayableBracket";
 import { BracketLegend } from "@/components/bracket/BracketLegend";
-import { getBracket } from "@/lib/data";
+import { TitleOdds } from "@/components/forecast/TitleOdds";
+import { getBracket, getGroups } from "@/lib/data";
+import { titleOddsFrom } from "@/lib/forecast/bracket";
 import { getCurrentTournamentId } from "@/lib/tournament/current";
 
 export const metadata: Metadata = { title: "Bracket" };
@@ -12,7 +14,8 @@ export const dynamic = "force-dynamic";
 
 export default async function BracketPage() {
   const tournamentId = await getCurrentTournamentId();
-  const bracket = await getBracket(tournamentId);
+  const [bracket, groups] = await Promise.all([getBracket(tournamentId), getGroups(tournamentId)]);
+  const titleOdds = titleOddsFrom(bracket, groups);
 
   const waiting =
     bracket.ties.length > 0 && bracket.ties.every((tie) => !tie.home.team && !tie.away.team);
@@ -45,7 +48,10 @@ export default async function BracketPage() {
       )}
 
       {bracket.ties.length > 0 ? (
-        <PlayableBracket initial={bracket} />
+        <>
+          <TitleOdds odds={titleOdds} />
+          <PlayableBracket initial={bracket} />
+        </>
       ) : (
         <div className="px-5 pt-3 sm:px-6">
           <div className="rounded-[11px] border border-dashed border-line-2 px-6 py-12 text-center text-[14px] text-ink-mute">

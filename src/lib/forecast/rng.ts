@@ -1,0 +1,35 @@
+// A tiny deterministic PRNG. Forecasts are seeded from the tournament state, so the
+// odds stay stable between renders of the same data instead of jittering every request.
+export type Rng = () => number;
+
+export function mulberry32(seed: number): Rng {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// FNV-1a — turns a state string ("42:3:26") into a stable 32-bit seed.
+export function hashString(input: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+// Knuth's sampler: goals per side are modelled as a Poisson process.
+export function poisson(rng: Rng, lambda: number): number {
+  const limit = Math.exp(-lambda);
+  let k = 0;
+  let p = 1;
+  do {
+    k += 1;
+    p *= rng();
+  } while (p > limit);
+  return k - 1;
+}

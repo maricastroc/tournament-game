@@ -78,7 +78,7 @@ export function GroupsStep({
           />
         </Field>
         <Field label="Advance per group">
-          <Segmented options={[1, 2]} value={qualifyCount} onChange={setQualifyCount} />
+          <Segmented options={[1, 2, 3, 4]} value={qualifyCount} onChange={setQualifyCount} />
         </Field>
       </div>
 

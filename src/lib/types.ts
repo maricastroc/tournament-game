@@ -1,5 +1,7 @@
 export type ResultLetter = "W" | "D" | "L";
 
+export type QualificationOutlook = "clinched" | "eliminated" | "contending";
+
 export type FixtureStatus = "scheduled" | "live" | "finished";
 
 export type TieStatus = "pending" | "ready" | "decided" | "live";
@@ -26,6 +28,9 @@ export interface StandingRow {
   points: number;
   form: ResultLetter[];
   qualified: boolean;
+  // forecast: chance of finishing in the top `qualifyCount`, and the derived outlook
+  advanceProb?: number;
+  outlook?: QualificationOutlook;
 }
 
 export interface Group {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { GroupCard } from "@/components/standings/GroupCard";
-import { getGroups } from "@/lib/data";
+import { getStandingsView } from "@/lib/data";
 import { getCurrentTournamentId } from "@/lib/tournament/current";
 
 export const metadata: Metadata = { title: "Standings" };
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function StandingsPage() {
   const tournamentId = await getCurrentTournamentId();
-  const groups = await getGroups(tournamentId);
+  const groups = await getStandingsView(tournamentId);
 
   const notStarted =
     groups.length > 0 && groups.every((group) => group.standings.every((row) => row.played === 0));

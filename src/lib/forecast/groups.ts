@@ -1,0 +1,53 @@
+import { computeStandings, type RawMatch } from "@/lib/standings";
+import type { QualificationOutlook, Team } from "@/lib/types";
+import { hashString, mulberry32 } from "./rng";
+import { ratingsFromMatches, sampleScore } from "./model";
+
+export interface GroupForecast {
+  advanceProb: Map<number, number>;
+  outlook: Map<number, QualificationOutlook>;
+}
+
+export interface GroupSim {
+  key: string; // stable seed source (changes when results change)
+  teams: Team[];
+  played: RawMatch[];
+  remaining: Array<[number, number]>; // [homeId, awayId] of scheduled games
+  qualifyCount: number;
+}
+
+const RUNS = 4000;
+
+// Monte Carlo over a group's remaining games: each team's probability of finishing in
+// the top `qualifyCount`, and whether that spot is already clinched or mathematically gone.
+export function forecastGroup(group: GroupSim): GroupForecast {
+  const ratings = ratingsFromMatches(group.teams, group.played);
+  const rng = mulberry32(hashString(group.key));
+  const counts = new Map<number, number>();
+  for (const team of group.teams) counts.set(team.id, 0);
+
+  for (let run = 0; run < RUNS; run++) {
+    const sampled = group.remaining.map<RawMatch>(([homeId, awayId]) => {
+      const [homeScore, awayScore] = sampleScore(
+        rng,
+        ratings.get(homeId) ?? 0,
+        ratings.get(awayId) ?? 0,
+      );
+      return { homeId, awayId, homeScore, awayScore };
+    });
+
+    const rows = computeStandings(group.teams, [...group.played, ...sampled], group.qualifyCount);
+    for (let i = 0; i < group.qualifyCount && i < rows.length; i++) {
+      counts.set(rows[i].team.id, (counts.get(rows[i].team.id) ?? 0) + 1);
+    }
+  }
+
+  const advanceProb = new Map<number, number>();
+  const outlook = new Map<number, QualificationOutlook>();
+  for (const team of group.teams) {
+    const prob = (counts.get(team.id) ?? 0) / RUNS;
+    advanceProb.set(team.id, prob);
+    outlook.set(team.id, prob >= 0.999 ? "clinched" : prob <= 0.001 ? "eliminated" : "contending");
+  }
+  return { advanceProb, outlook };
+}

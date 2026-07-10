@@ -22,8 +22,8 @@ reference is the API's `docs/mocks/bracket-mocks.html`.
 | Route                | Screen             | What it does                                                                                                                                           |
 | -------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `/`                  | **Overview**       | Answers "what needs my attention now" — next decider, the tightest group, live stats.                                                                  |
-| `/standings`         | **Standings**      | Every group table, with qualification zones and explicit tiebreak notes.                                                                               |
-| `/bracket`           | **Bracket**        | The signature screen — knockout rounds threaded by CSS connectors, penalty/TBD states, the trophy.                                                     |
+| `/standings`         | **Standings**      | Every group table — qualification zones, tiebreak notes, and a per-team forecast (clinched / out / % to advance).                                      |
+| `/bracket`           | **Bracket**        | The signature screen — a _playable_ knockout (tap a tie, enter the score, the winner advances to the trophy) topped by a Monte-Carlo "title race".     |
 | `/console`           | **Console**        | Edit a result; the projection previews the delta, then a real optimistic-locked write saves it.                                                        |
 | `/tournaments`       | **Tournaments**    | Every tournament you run — open one to view it across the app, or delete it. A sample tournament is always shown.                                      |
 | `/tournaments/new`   | **New tournament** | A three-step wizard — name it, add teams, split into groups — that generates the fixtures and the bracket.                                             |
@@ -35,10 +35,19 @@ reference is the API's `docs/mocks/bracket-mocks.html`.
   stored — points, goal difference, form and the qualification cut recalculate
   on every read. The tiebreak that separates two level teams is spelled out in
   plain language.
-- **The knockout bracket.** Rounds flow left→right, CSS connectors thread each
-  winner forward, and the final feeds the trophy column. Live ties pulse; the
-  champion slot stays "to be decided" in gold until it's earned. Scrolls
-  horizontally on narrow viewports rather than cramping the cards.
+- **Playable knockout.** Rounds flow left→right, CSS connectors thread each
+  winner forward, and the final feeds the trophy column. It's not just a view:
+  tap any tie to enter the score — a penalty shootout appears on a draw — and the
+  winner advances through the tree to a crowned champion, with a live preview of
+  who they'll face next. Editing an upstream result cascades down the bracket, so
+  it's never left partial. Results persist through the same optimistic-locked
+  match endpoint as the group stage (it branches on the tie; a stale edit 409s).
+- **Forecast & odds.** A server-side Monte-Carlo turns the tables into a live
+  story. `/bracket` carries a **title race** — each surviving side's chance to
+  lift the trophy, simulated over the remaining knockout. `/standings` tags every
+  team **clinched**, **out**, or a live **% to advance**, from simulating each
+  group's remaining games. A seeded RNG keeps the numbers stable until a real
+  result moves them.
 - **The Console.** Pick a match, dial each side's score, and the group table on
   the right previews the exact reorder — rows rising in green, falling in red —
   _before_ you commit. Confirming performs an atomic, optimistic-locked `PUT`
@@ -63,12 +72,14 @@ src/
   app/(app)/…          route group; shared shell (rail + topbar + phase pills)
     tournaments/       the tournament gallery + new/ (the build wizard)
   app/login/ register/ organizer auth
-  components/          shell · bracket · standings · overview · console · tournaments · ui
+  components/          shell · bracket · standings · overview · console · forecast · tournaments · ui
   lib/
     types.ts           UI domain model
     format.ts          round names, ordinals, goal-difference display
     standings.ts       pure standings projection (mirrors the API's GroupTable)
+    knockout.ts        pure knockout resolver (advancement, penalties, champion)
     console.ts         console preview helpers (raw matches → standings delta)
+    forecast/          Monte-Carlo odds — seeded RNG, model, group + bracket sims
     auth/              session context (token in localStorage, useAuth)
     api/client.ts      live API client (reads, auth, tournament CRUD, result submit)
     tournament/        current-tournament cookie (server + client) + draft/build helpers
@@ -78,18 +89,20 @@ src/
       index.ts         public reads: try live, fall back to demo
 ```
 
-**The data seam.** Reads (`getGroups`, `getBracket`, `getOverview`,
-`getConsoleGroups`) take a tournament id and try the live API first, falling
+**The data seam.** Reads (`getGroups`, `getStandingsView`, `getBracket`,
+`getOverview`, `getConsoleGroups`) take a tournament id and try the live API first, falling
 back to the demo fixtures for the demo tournament (id 1) when the API is
 unreachable; other tournaments return safe-empty so nothing crashes. Team names
 arrive in Portuguese and are enriched to English + flags via a catalog keyed by
 team id. The **current tournament** is held in a server-readable cookie so the
 SSR screens know which tournament to render without a client round-trip.
 
-The API surface is thin, so some texture stays local: the API has no live-match
-or per-side knockout-score endpoints, so the Overview's live card and the
-bracket's per-side scores are demo-fed. Fully-live versions would need those
-added upstream.
+Knockout results are live too: the bracket is edited in place and saved through
+the same optimistic-locked match endpoint as the group stage (it branches on the
+tie), and each side's score is read from the knockout fixtures on the tournament
+detail and merged onto the resolved bracket. The forecasts run server-side over
+that same data. One bit of texture stays local — the API has no live-match /
+kickoff endpoint, so the Overview's "live now" card is still demo-fed.
 
 ## Configuration
 
