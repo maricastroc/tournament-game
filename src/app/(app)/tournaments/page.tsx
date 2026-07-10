@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Plus, Trash2 } from "lucide-react";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/context";
@@ -68,7 +69,8 @@ export default function TournamentsPage() {
               href="/tournaments/new"
               className="inline-flex items-center gap-2 rounded-[10px] bg-amber px-4 py-2.5 text-[13px] font-bold text-[#1a1205] shadow-[0_8px_22px_-8px_rgba(242,169,59,0.6)] transition-all duration-150 hover:brightness-105 active:scale-[0.99]"
             >
-              + New tournament
+              <Plus className="h-4 w-4" />
+              New tournament
             </Link>
           ) : undefined
         }
@@ -160,17 +162,7 @@ function TournamentCard({
             aria-label={`Delete ${tournament.name}`}
             className="grid h-[34px] w-[34px] place-items-center rounded-[9px] border border-line text-ink-mute transition-colors duration-150 hover:border-loss/40 hover:text-loss"
           >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6" />
-            </svg>
+            <Trash2 className="h-4 w-4" />
           </button>
         )}
       </div>

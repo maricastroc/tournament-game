@@ -1,5 +1,7 @@
 "use client";
 
+import { Minus, Plus } from "lucide-react";
+
 export function Stepper({
   value,
   onChange,
@@ -17,9 +19,9 @@ export function Stepper({
         type="button"
         aria-label={`One fewer goal for ${label}`}
         onClick={() => set(value - 1)}
-        className="h-7 w-7 rounded-sm border border-line-2 bg-surface-3 text-[16px] leading-none text-ink-dim transition-colors duration-150 hover:border-amber-line hover:text-ink active:scale-95"
+        className="grid h-7 w-7 place-items-center rounded-sm border border-line-2 bg-surface-3 text-ink-dim transition-colors duration-150 hover:border-amber-line hover:text-ink active:scale-95"
       >
-        −
+        <Minus className="h-4 w-4" />
       </button>
       <span className="w-8.5 text-center font-mono text-[30px] font-bold tabular-nums">
         {value}
@@ -28,9 +30,9 @@ export function Stepper({
         type="button"
         aria-label={`One more goal for ${label}`}
         onClick={() => set(value + 1)}
-        className="h-7 w-7 rounded-sm border border-line-2 bg-surface-3 text-[16px] leading-none text-ink-dim transition-colors duration-150 hover:border-amber-line hover:text-ink active:scale-95"
+        className="grid h-7 w-7 place-items-center rounded-sm border border-line-2 bg-surface-3 text-ink-dim transition-colors duration-150 hover:border-amber-line hover:text-ink active:scale-95"
       >
-        +
+        <Plus className="h-4 w-4" />
       </button>
     </div>
   );

@@ -111,6 +111,11 @@
     color-scheme: dark;
   }
 
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
   body {
     /* two stadium light-pools + the ground, exactly as the mock */
     background:

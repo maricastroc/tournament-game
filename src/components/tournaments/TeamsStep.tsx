@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { Plus, X } from "lucide-react";
 import type { DraftTeam } from "@/lib/tournament/draft";
 import { StepCard, WizardButton } from "./wizard";
 
@@ -43,7 +44,7 @@ export function TeamsStep({ drafts, setDrafts, validCount, busy, onSubmit }: Tea
               aria-label={`Remove team ${index + 1}`}
               className="grid h-[38px] w-[38px] place-items-center rounded-[9px] border border-line text-ink-mute transition-colors hover:border-loss/40 hover:text-loss"
             >
-              ×
+              <X className="h-4 w-4" />
             </button>
           </div>
         ))}
@@ -52,9 +53,10 @@ export function TeamsStep({ drafts, setDrafts, validCount, busy, onSubmit }: Tea
       <button
         type="button"
         onClick={() => setDrafts((d) => [...d, { name: "", flag: "" }])}
-        className="mt-3 w-full rounded-[9px] border border-dashed border-line-2 py-2.5 text-[13px] text-ink-dim transition-colors hover:border-amber-line hover:text-amber-ink"
+        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-[9px] border border-dashed border-line-2 py-2.5 text-[13px] text-ink-dim transition-colors hover:border-amber-line hover:text-amber-ink"
       >
-        + Add team
+        <Plus className="h-3.5 w-3.5" />
+        Add team
       </button>
 
       <p className="mt-3 font-mono text-[11px] text-ink-mute">
