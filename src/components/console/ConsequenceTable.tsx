@@ -39,8 +39,8 @@ export function ConsequenceTable({
               key={row.team.id}
               ref={flip(row.team.id)}
               className={[
-                "grid grid-cols-[26px_1fr_auto_auto] items-center gap-3 border-t border-l-2 border-line border-l-transparent px-4 py-3 tabular-nums first:border-t-0",
-                row.qualified && "border-l-amber",
+                "grid grid-cols-[26px_1fr_auto_auto] items-center gap-3 border-t border-t-line border-l-2 px-4 py-3 tabular-nums first:border-t-0",
+                row.qualified ? "border-l-amber" : "border-l-transparent",
                 move.dir === "up" && "bg-win/5",
                 move.dir === "down" && "bg-loss/5",
               ]
