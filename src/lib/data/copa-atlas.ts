@@ -74,9 +74,7 @@ export interface TieSeed {
   slot: number;
   homeId: number | null;
   awayId: number | null;
-  // Group-stage seed each round-one side is drawn from (e.g. "A1", "B2") — mirrors the
-  // backend's `home_source`, and lets the offline what-if reseed the bracket from projected
-  // standings instead of the frozen ids below.
+  // Group-stage seed each round-one side is drawn from, e.g. "A1", "B2" (round-one only).
   homeSeed?: string;
   awaySeed?: string;
   homeSourceLabel?: string;

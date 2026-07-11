@@ -7,11 +7,6 @@ interface ProjectedStandingsProps {
   baseline: ScenarioProjection;
 }
 
-/**
- * The projected group tables, each row annotated with how it moved against reality
- * (the untouched baseline). Position, goal difference or points shifts all surface,
- * so the effect of the pinned results is legible at a glance.
- */
 export function ProjectedStandings({ projection, baseline }: ProjectedStandingsProps) {
   const baselineByGroup = new Map(
     baseline.groups.map((group) => [

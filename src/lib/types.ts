@@ -183,7 +183,6 @@ export interface GroupStageInput {
   groups: Array<{ name: string; teamIds: number[] }>;
 }
 
-// A single hypothetical result the user pins in the "what if?" screen.
 export interface ScenarioResult {
   fixtureId: number;
   homeScore: number;
@@ -192,13 +191,11 @@ export interface ScenarioResult {
   awayPenalties?: number | null;
 }
 
-// The projection the API returns for a scenario: standings per group + the resolved bracket.
 export interface ScenarioProjection {
   groups: Array<{ id: number; name: string; qualifyCount: number; standings: StandingRow[] }>;
   bracket: Bracket | null;
 }
 
-// A group or knockout match the user can pin a hypothetical score to in the what-if screen.
 export interface WhatIfFixture {
   id: number;
   phase: "group" | "knockout";

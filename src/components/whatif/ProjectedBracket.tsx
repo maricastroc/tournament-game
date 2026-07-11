@@ -10,10 +10,6 @@ interface ProjectedBracketProps {
 const sideKey = (tie: BracketTie) =>
   `${tie.home.team?.id ?? "-"}:${tie.away.team?.id ?? "-"}:${tie.winnerId ?? "-"}`;
 
-/**
- * The projected bracket, with every tie whose participants or winner differ from reality
- * ringed in amber — so a reshuffled seed or a flipped result reads instantly.
- */
 export function ProjectedBracket({ bracket, baseline }: ProjectedBracketProps) {
   const baselineByTie = new Map(baseline.ties.map((tie) => [tie.id, sideKey(tie)]));
 

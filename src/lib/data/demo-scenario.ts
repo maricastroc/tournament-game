@@ -12,18 +12,8 @@ import type {
 } from "@/lib/types";
 import { GROUPS, KNOCKOUT_STAGE_ID, MAX_ROUND, TIES, team } from "./copa-atlas";
 
-/**
- * The offline twin of the scenario endpoint: projects a what-if entirely client-side from
- * the bundled Copa Atlas data, so the feature works in the deployed demo with no backend.
- *
- * It leans on the same pure engines the rest of the app uses — computeStandings for the
- * tables and resolveBracket for the tree — and reproduces the API's cascade: hypothetical
- * group results re-rank the standings, which reseed the round-one ties, which cascade up the
- * bracket. The only demo-specific glue is a synthetic id per (anonymous) group match.
- */
-
-// Group matches carry no id in the bundled data, so we mint a stable one. Knockout picks use
-// the tie id (1–7); groups start at 100 to keep the two id spaces disjoint.
+// Group matches carry no id, so mint one. Knockout picks use the tie id (1–7); groups start
+// at 100 to keep the two id spaces disjoint (see isGroupFixtureId).
 const groupMatchId = (groupId: number, index: number): number => groupId * 100 + index;
 const isGroupFixtureId = (fixtureId: number): boolean => fixtureId >= 100;
 
@@ -64,8 +54,6 @@ function projectBracket(
 ): Bracket {
   const seeds = seedMap(groups);
 
-  // Round-one sides come from the projected seeds; deeper rounds are left empty for
-  // resolveBracket to fill from the winners feeding into them.
   const base: BracketTie[] = TIES.map((tie) => ({
     id: tie.id,
     round: tie.round,
@@ -87,7 +75,6 @@ function projectBracket(
     decidedByPenalties: false,
   }));
 
-  // Recorded demo results stand unless the scenario overrides that tie.
   const results: TieResults = new Map();
   for (const tie of TIES) {
     const override = overrides.get(tie.id);

@@ -13,8 +13,6 @@ import { DEMO_TOURNAMENT_ID } from "@/lib/tournament/constants";
 import { TEAMS } from "./copa-atlas";
 import { demoProjectScenario, demoWhatIfSetup } from "./demo-scenario";
 
-// Re-exported for the what-if components; the shapes live in types.ts to keep the demo
-// projector (demo-scenario.ts) free of a circular import back into this module.
 export type { WhatIfFixture, WhatIfSetup } from "@/lib/types";
 
 const LIVE_ENABLED = process.env.NEXT_PUBLIC_USE_LIVE_API !== "false";
@@ -28,11 +26,6 @@ function enrichRow(row: StandingRow): StandingRow {
   return { ...row, team: TEAMS[row.team.id] ?? row.team };
 }
 
-/**
- * The scenario bracket arrives resolved but flat (no slot, no "Winner X" labels),
- * mirroring the raw bracket endpoint. This finishes it exactly like the live bracket
- * seam does, so it renders through the same components.
- */
 function finalizeBracket(bracket: Bracket): Bracket {
   const ties = [...bracket.ties].sort((a, b) => a.round - b.round || a.id - b.id);
 
@@ -69,7 +62,6 @@ function enrich(projection: ScenarioProjection): ScenarioProjection {
   };
 }
 
-/** Projects the scenario through the API's pure engines and enriches team names/flags. */
 async function liveProjectScenario(
   tournamentId: number,
   results: ScenarioResult[],
@@ -85,11 +77,6 @@ async function liveProjectScenario(
   return enrich(await api.projectScenario(tournamentId, input));
 }
 
-/**
- * Runs a set of hypothetical results and returns the projected standings + bracket.
- * Writes nothing. Falls back to the offline demo projector when live is disabled or the
- * API is unreachable, so the deployed demo tournament runs what-ifs without a backend.
- */
 export async function projectScenario(
   tournamentId: number,
   results: ScenarioResult[],
@@ -108,10 +95,6 @@ export async function projectScenario(
   }
 }
 
-/**
- * Loads the pickable fixtures (every match with both sides known) plus the untouched
- * baseline projection — the "reality" the scenario is diffed against.
- */
 async function liveWhatIfSetup(tournamentId: number): Promise<WhatIfSetup> {
   const detail = await api.getTournament(tournamentId);
   const enrichName = (team: Team): Team => TEAMS[team.id] ?? team;

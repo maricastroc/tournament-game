@@ -65,7 +65,6 @@ interface ApiScenario {
   bracket: ApiBracket | null;
 }
 
-/** A single hypothetical result posted to the "what if?" endpoint. */
 export interface ScenarioInput {
   fixture_id: number;
   home_score: number;
@@ -369,9 +368,6 @@ export const api = {
     };
   },
 
-  // "What if?": posts a set of hypothetical results and gets back the projected
-  // standings + bracket. The API writes nothing — it is a pure projection — so this
-  // is a public, unauthenticated read that reuses the live standings/bracket shapes.
   projectScenario: async (
     tournamentId: number,
     results: ScenarioInput[],

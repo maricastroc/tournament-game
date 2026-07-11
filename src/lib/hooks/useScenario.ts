@@ -5,21 +5,16 @@ import { projectScenario } from "@/lib/data/scenario";
 import { notifyApiError } from "@/lib/toast";
 import type { ScenarioProjection, ScenarioResult } from "@/lib/types";
 
-/**
- * Holds the pinned hypothetical results and keeps the projection in sync with them.
- *
- * Every change re-asks the API to project the whole tournament from scratch — the pure
- * engines make that cheap, and it keeps the client dumb: it never derives standings or
- * reseeds a bracket itself, it just renders whatever the projection returns. With nothing
- * pinned the projection is simply the baseline (reality), derived without a round-trip.
- *
- * The "projecting…" flag is raised in the handlers that trigger a fetch and lowered in the
- * request's own callback — the effect only performs the I/O, never sets state synchronously.
- */
-export function useScenario(tournamentId: number, baseline: ScenarioProjection) {
-  const [pins, setPins] = useState<Map<number, ScenarioResult>>(new Map());
+export function useScenario(
+  tournamentId: number,
+  baseline: ScenarioProjection,
+  initialPins: ScenarioResult[] = [],
+) {
+  const [pins, setPins] = useState<Map<number, ScenarioResult>>(
+    () => new Map(initialPins.map((pin) => [pin.fixtureId, pin])),
+  );
   const [projected, setProjected] = useState<ScenarioProjection | null>(null);
-  const [fetching, setFetching] = useState(false);
+  const [fetching, setFetching] = useState(initialPins.length > 0);
   const requestId = useRef(0);
 
   useEffect(() => {
