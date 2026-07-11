@@ -43,6 +43,16 @@ function knockoutStageOf(detail: TournamentDetail): StageDetail | undefined {
   return detail.stages.find((stage) => stage.type === "knockout");
 }
 
+/** Rounds the knockout will have, inferred from the group qualifiers, before it is built. */
+function projectedKnockoutRounds(detail: TournamentDetail): number {
+  const stage = groupStageOf(detail);
+  if (!stage) return 0;
+  const qualifiers = stage.groups.reduce((sum, group) => sum + group.qualifyCount, 0);
+  if (qualifiers < 2) return 0;
+  const rounds = Math.log2(qualifiers);
+  return Number.isInteger(rounds) ? rounds : 0;
+}
+
 async function groupsFromDetail(detail: TournamentDetail, teams: TeamMap): Promise<Group[]> {
   const stage = groupStageOf(detail);
   if (!stage) return [];
@@ -213,6 +223,11 @@ export async function liveMeta(id: number): Promise<TournamentMeta> {
       });
     }
     phaseLabel = "Knockout";
+  } else {
+    const maxRound = projectedKnockoutRounds(detail);
+    for (let round = 1; round <= maxRound; round++) {
+      phases.push({ key: `r${round}`, label: shortRound(round, maxRound), state: "todo" });
+    }
   }
 
   return {

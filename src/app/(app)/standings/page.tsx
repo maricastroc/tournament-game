@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { GroupCard } from "@/components/standings/GroupCard";
+import { GroupResults } from "@/components/standings/GroupResults";
+import { GroupStageTabs } from "@/components/standings/GroupStageTabs";
 import { getConsoleGroups, getStandingsView } from "@/lib/data";
 import type { RawMatch } from "@/lib/standings";
 import { getCurrentTournamentId } from "@/lib/tournament/current";
@@ -69,16 +71,21 @@ export default async function StandingsPage() {
       )}
 
       {groups.length > 0 ? (
-        <div className="grid gap-5 px-5 pt-3 sm:px-6 lg:grid-cols-2">
-          {groups.map((group) => (
-            <GroupCard
-              key={group.id}
-              group={group}
-              teams={detailById.get(group.id)?.teams ?? group.standings.map((row) => row.team)}
-              matches={resultsOf(group.id)}
-            />
-          ))}
-        </div>
+        <GroupStageTabs
+          table={
+            <div className="grid gap-5 px-5 pt-3 sm:px-6 lg:grid-cols-2">
+              {groups.map((group) => (
+                <GroupCard
+                  key={group.id}
+                  group={group}
+                  teams={detailById.get(group.id)?.teams ?? group.standings.map((row) => row.team)}
+                  matches={resultsOf(group.id)}
+                />
+              ))}
+            </div>
+          }
+          results={<GroupResults groups={consoleGroups} />}
+        />
       ) : (
         <div className="px-5 pt-3 sm:px-6">
           <div className="rounded-[11px] border border-dashed border-line-2 px-6 py-12 text-center text-[14px] text-ink-mute">
