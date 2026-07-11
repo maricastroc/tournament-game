@@ -91,9 +91,21 @@ export function useGroupEditor(group: GroupDetail) {
     () => computeStandings(group.teams, rawMatches(fixtures, rows, false), group.qualifyCount),
     [group, fixtures, rows],
   );
+  const livePlayed = useMemo(() => rawMatches(fixtures, rows, true), [fixtures, rows]);
+  const remainingPairs = useMemo<Array<[number, number]>>(
+    () =>
+      fixtures.flatMap((fixture): Array<[number, number]> => {
+        if (!fixture.home || !fixture.away) return [];
+        const row = rows[fixture.id];
+        const changed = row && (row.home !== row.savedHome || row.away !== row.savedAway);
+        if (row?.finished || changed) return [];
+        return [[fixture.home.id, fixture.away.id]];
+      }),
+    [fixtures, rows],
+  );
   const preview = useMemo(
-    () => computeStandings(group.teams, rawMatches(fixtures, rows, true), group.qualifyCount),
-    [group, fixtures, rows],
+    () => computeStandings(group.teams, livePlayed, group.qualifyCount),
+    [group, livePlayed],
   );
 
   const dirty = Object.values(rows).some((r) => r.home !== r.savedHome || r.away !== r.savedAway);
@@ -150,5 +162,17 @@ export function useGroupEditor(group: GroupDetail) {
     timers.current[id] = setTimeout(() => save(id), SAVE_DELAY);
   }
 
-  return { authed, fixtures, rows, base, preview, dirty, previewKey, setScore, savedNonce };
+  return {
+    authed,
+    fixtures,
+    rows,
+    base,
+    preview,
+    livePlayed,
+    remainingPairs,
+    dirty,
+    previewKey,
+    setScore,
+    savedNonce,
+  };
 }

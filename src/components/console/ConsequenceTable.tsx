@@ -2,6 +2,7 @@ import type { StandingRow } from "@/lib/types";
 import { describeMove } from "@/lib/console";
 import { Flag } from "@/components/ui/Flag";
 import { useReorderFlip } from "@/components/ui/useReorderFlip";
+import { OutlookBadge } from "@/components/standings/OutlookBadge";
 
 interface ConsequenceTableProps {
   groupName: string;
@@ -41,6 +42,7 @@ export function ConsequenceTable({
               className={[
                 "grid grid-cols-[26px_1fr_auto_auto] items-center gap-3 border-t border-t-line border-l-2 px-4 py-3 tabular-nums first:border-t-0",
                 row.qualified ? "border-l-amber" : "border-l-transparent",
+                row.outlook === "eliminated" && "opacity-55",
                 move.dir === "up" && "bg-win/5",
                 move.dir === "down" && "bg-loss/5",
               ]
@@ -48,9 +50,12 @@ export function ConsequenceTable({
                 .join(" ")}
             >
               <span className="font-mono text-[13px] text-ink-mute">{row.position}</span>
-              <span className="flex items-center gap-2.5 text-[14px] font-semibold">
+              <span className="flex min-w-0 items-center gap-2.5 text-[14px] font-semibold">
                 <Flag team={row.team} className="text-[17px]" />
                 <span className="truncate">{row.team.name}</span>
+                {(row.outlook === "clinched" || row.outlook === "eliminated") && (
+                  <OutlookBadge row={row} />
+                )}
               </span>
               <span
                 className={[

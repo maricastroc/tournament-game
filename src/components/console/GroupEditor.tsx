@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import type { GroupDetail } from "@/lib/types";
 import { useGroupEditor } from "./useGroupEditor";
+import { useGroupOutlook } from "./useGroupOutlook";
 import { FixtureRow } from "./FixtureRow";
 import { ConsequenceTable } from "./ConsequenceTable";
 
@@ -14,6 +15,24 @@ export function GroupEditor({ group, onSaved }: { group: GroupDetail; onSaved?: 
     if (editor.savedNonce === 0) return;
     onSaved?.();
   }, [editor.savedNonce, onSaved]);
+
+  const outlookKey = `${group.id}:${editor.remainingPairs.length}:${editor.livePlayed
+    .map((m) => `${m.homeId}.${m.homeScore}:${m.awayScore}.${m.awayId}`)
+    .join("_")}`;
+  const forecast = useGroupOutlook({
+    key: outlookKey,
+    teams: group.teams,
+    played: editor.livePlayed,
+    remaining: editor.remainingPairs,
+    qualifyCount: group.qualifyCount,
+  });
+  const preview = forecast
+    ? editor.preview.map((row) => ({
+        ...row,
+        outlook: forecast.outlook.get(row.team.id),
+        advanceProb: forecast.advanceProb.get(row.team.id),
+      }))
+    : editor.preview;
 
   return (
     <div className="mt-5 grid grid-cols-1 gap-y-8 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-0">
@@ -61,7 +80,7 @@ export function GroupEditor({ group, onSaved }: { group: GroupDetail; onSaved?: 
         groupName={group.name}
         dirty={editor.dirty}
         base={editor.base}
-        preview={editor.preview}
+        preview={preview}
         previewKey={editor.previewKey}
       />
     </div>
