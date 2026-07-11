@@ -28,7 +28,7 @@ export function ScenarioPins({ fixtures, pins, onUnpin, onReset }: ScenarioPinsP
 
       {pins.size === 0 ? (
         <p className="rounded-md border border-dashed border-line-2 px-4 py-5 text-center text-[12.5px] text-ink-mute">
-          Nothing pinned — the tables on the right show reality. Pin a result to project a what-if.
+          Nothing pinned — the tables show reality. Pin a result to project a what-if.
         </p>
       ) : (
         <ul className="flex flex-col gap-1.5">

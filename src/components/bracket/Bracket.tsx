@@ -45,8 +45,12 @@ function RoundColumn({
         {matches.map((tie) => (
           <div key={tie.id} className="flex flex-1 items-center py-2">
             <div
-              className={`w-full transition-opacity duration-200 ${
-                road && !road.has(tie.id) ? "opacity-30" : "opacity-100"
+              className={`w-full rounded-[12px] transition-all duration-200 ${
+                road
+                  ? road.has(tie.id)
+                    ? "opacity-100 shadow-[0_0_16px_-2px_rgba(242,169,59,0.55)]"
+                    : "opacity-20"
+                  : "opacity-100"
               }`}
             >
               {renderCard(tie)}
