@@ -16,6 +16,15 @@ export function roundName(round: number, maxRound: number): string {
   }
 }
 
+export function shortRound(round: number, maxRound: number): string {
+  const distance = maxRound - round;
+  if (distance === 0) return "Final";
+  if (distance === 1) return "Semis";
+  if (distance === 2) return "Quarters";
+  if (distance === 3) return "R16";
+  return `R${round}`;
+}
+
 export function roundTag(round: number, maxRound: number, slot: number): string {
   const distanceToFinal = maxRound - round;
   const prefix =

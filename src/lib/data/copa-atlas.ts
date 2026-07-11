@@ -2,7 +2,6 @@ import type { Team } from "@/lib/types";
 import type { RawMatch } from "@/lib/standings";
 
 export const KNOCKOUT_STAGE_ID = 2;
-export const MAX_ROUND = 3;
 
 export const TEAMS: Record<number, Team> = {
   1: { id: 1, name: "Brazil", code: "BRA", flag: "🇧🇷" },
@@ -21,6 +20,22 @@ export const TEAMS: Record<number, Team> = {
   14: { id: 14, name: "Netherlands", code: "NED", flag: "🇳🇱" },
   15: { id: 15, name: "Mexico", code: "MEX", flag: "🇲🇽" },
   16: { id: 16, name: "Italy", code: "ITA", flag: "🇮🇹" },
+  17: { id: 17, name: "Belgium", code: "BEL", flag: "🇧🇪" },
+  18: { id: 18, name: "United States", code: "USA", flag: "🇺🇸" },
+  19: { id: 19, name: "Ecuador", code: "ECU", flag: "🇪🇨" },
+  20: { id: 20, name: "Iran", code: "IRN", flag: "🇮🇷" },
+  21: { id: 21, name: "Colombia", code: "COL", flag: "🇨🇴" },
+  22: { id: 22, name: "Switzerland", code: "SUI", flag: "🇨🇭" },
+  23: { id: 23, name: "Ghana", code: "GHA", flag: "🇬🇭" },
+  24: { id: 24, name: "Saudi Arabia", code: "KSA", flag: "🇸🇦" },
+  25: { id: 25, name: "Denmark", code: "DEN", flag: "🇩🇰" },
+  26: { id: 26, name: "Serbia", code: "SRB", flag: "🇷🇸" },
+  27: { id: 27, name: "Cameroon", code: "CMR", flag: "🇨🇲" },
+  28: { id: 28, name: "Canada", code: "CAN", flag: "🇨🇦" },
+  29: { id: 29, name: "Australia", code: "AUS", flag: "🇦🇺" },
+  30: { id: 30, name: "Tunisia", code: "TUN", flag: "🇹🇳" },
+  31: { id: 31, name: "Qatar", code: "QAT", flag: "🇶🇦" },
+  32: { id: 32, name: "Egypt", code: "EGY", flag: "🇪🇬" },
 };
 
 export function team(id: number): Team {
@@ -60,6 +75,10 @@ export const GROUPS: GroupSeed[] = [
   { id: 2, name: "B", qualifyCount: 2, teamIds: [5, 6, 7, 8] },
   { id: 3, name: "C", qualifyCount: 2, teamIds: [9, 10, 11, 12] },
   { id: 4, name: "D", qualifyCount: 2, teamIds: [13, 14, 15, 16] },
+  { id: 5, name: "E", qualifyCount: 2, teamIds: [17, 18, 19, 20] },
+  { id: 6, name: "F", qualifyCount: 2, teamIds: [21, 22, 23, 24] },
+  { id: 7, name: "G", qualifyCount: 2, teamIds: [25, 26, 27, 28] },
+  { id: 8, name: "H", qualifyCount: 2, teamIds: [29, 30, 31, 32] },
 ].map((group) => ({ ...group, matches: roundRobin(group.teamIds) }));
 
 export function groupSeed(id: number): GroupSeed {
@@ -89,102 +108,106 @@ export interface TieSeed {
   liveMinute?: number;
 }
 
-export const TIES: TieSeed[] = [
-  {
-    id: 1,
-    round: 1,
-    slot: 1,
-    homeId: 1,
-    awayId: 6,
-    homeSeed: "A1",
-    awaySeed: "B2",
-    homeScore: 2,
-    awayScore: 1,
-    winnerId: 1,
-    status: "decided",
-  },
-  {
-    id: 2,
-    round: 1,
-    slot: 2,
-    homeId: 9,
-    awayId: 14,
-    homeSeed: "C1",
-    awaySeed: "D2",
-    homeScore: 1,
-    awayScore: 1,
-    homePenalties: 4,
-    awayPenalties: 2,
-    winnerId: 9,
-    status: "decided",
-  },
-  {
-    id: 3,
-    round: 1,
-    slot: 3,
-    homeId: 5,
-    awayId: 2,
-    homeSeed: "B1",
-    awaySeed: "A2",
-    homeScore: 1,
-    awayScore: 1,
-    winnerId: null,
-    status: "live",
-    liveMinute: 78,
-  },
-  {
-    id: 4,
-    round: 1,
-    slot: 4,
-    homeId: 13,
-    awayId: 10,
-    homeSeed: "D1",
-    awaySeed: "C2",
-    homeScore: null,
-    awayScore: null,
-    winnerId: null,
-    status: "ready",
-    kickoff: "Sat 21:00",
-  },
-  {
-    id: 5,
-    round: 2,
-    slot: 1,
-    homeId: 1,
-    awayId: 9,
-    homeScore: null,
-    awayScore: null,
-    winnerId: null,
-    status: "ready",
-    kickoff: "Tue 20:00",
-  },
-  {
-    id: 6,
-    round: 2,
-    slot: 2,
-    homeId: null,
-    awayId: null,
-    homeSourceLabel: "Winner QF3",
-    awaySourceLabel: "Winner QF4",
-    homeScore: null,
-    awayScore: null,
-    winnerId: null,
-    status: "pending",
-  },
-  {
-    id: 7,
-    round: 3,
-    slot: 1,
-    homeId: null,
-    awayId: null,
-    homeSourceLabel: "Winner SF1",
-    awaySourceLabel: "Winner SF2",
-    homeScore: null,
-    awayScore: null,
-    winnerId: null,
-    status: "pending",
-  },
-];
+interface KnockoutResult {
+  homeScore: number;
+  awayScore: number;
+  homePenalties?: number;
+  awayPenalties?: number;
+}
+
+// Round-of-16 results already played, by slot — mirrors the backend TournamentDemoSeeder.
+// The rest of the bracket is still to come; winners cascade from these.
+const R16_RESULTS: Record<number, KnockoutResult> = {
+  1: { homeScore: 3, awayScore: 1 },
+  2: { homeScore: 1, awayScore: 1, homePenalties: 5, awayPenalties: 4 },
+  3: { homeScore: 2, awayScore: 0 },
+  4: { homeScore: 0, awayScore: 2 },
+  5: { homeScore: 4, awayScore: 1 },
+};
+
+const ROUND_TAG: Record<number, string> = { 1: "R16", 2: "QF", 3: "SF", 4: "F" };
+
+function qualifier(groupName: string, position: number): number {
+  const group = GROUPS.find((g) => g.name === groupName);
+  if (!group) throw new Error(`Unknown group ${groupName}`);
+  return group.teamIds[position - 1];
+}
+
+function decideWinner(homeId: number, awayId: number, result: KnockoutResult): number {
+  if (result.homeScore > result.awayScore) return homeId;
+  if (result.awayScore > result.homeScore) return awayId;
+  return (result.homePenalties ?? 0) > (result.awayPenalties ?? 0) ? homeId : awayId;
+}
+
+// Build the whole bracket from the group qualifiers, mirroring the backend KnockoutSeeder
+// pairing and cascading Round-of-16 winners forward. Keeps demo mode in step with the API.
+function buildTies(): TieSeed[] {
+  const names = GROUPS.map((group) => group.name).sort();
+  const pairs: Array<[string, string]> = [];
+  for (let i = 0; i < names.length; i += 2) pairs.push([names[i], names[i + 1]]);
+
+  const firstRound: Array<[string, number, string, number]> = [];
+  for (const [x, y] of pairs) firstRound.push([x, 1, y, 2]);
+  for (const [x, y] of pairs) firstRound.push([y, 1, x, 2]);
+
+  const ties: TieSeed[] = [];
+  let id = 1;
+
+  firstRound.forEach(([homeGroup, homePos, awayGroup, awayPos], index) => {
+    const slot = index + 1;
+    const homeId = qualifier(homeGroup, homePos);
+    const awayId = qualifier(awayGroup, awayPos);
+    const result = R16_RESULTS[slot];
+    ties.push({
+      id: id++,
+      round: 1,
+      slot,
+      homeId,
+      awayId,
+      homeSeed: `${homeGroup}${homePos}`,
+      awaySeed: `${awayGroup}${awayPos}`,
+      homeScore: result?.homeScore ?? null,
+      awayScore: result?.awayScore ?? null,
+      homePenalties: result?.homePenalties ?? null,
+      awayPenalties: result?.awayPenalties ?? null,
+      winnerId: result ? decideWinner(homeId, awayId, result) : null,
+      status: result ? "decided" : "ready",
+    });
+  });
+
+  let previousCount = firstRound.length;
+  const maxRound = Math.log2(firstRound.length) + 1;
+  for (let round = 2; round <= maxRound; round++) {
+    const count = previousCount / 2;
+    for (let slot = 1; slot <= count; slot++) {
+      const homeFeeder = ties.find((t) => t.round === round - 1 && t.slot === 2 * slot - 1)!;
+      const awayFeeder = ties.find((t) => t.round === round - 1 && t.slot === 2 * slot)!;
+      const homeId = homeFeeder.status === "decided" ? homeFeeder.winnerId : null;
+      const awayId = awayFeeder.status === "decided" ? awayFeeder.winnerId : null;
+      const feederTag = ROUND_TAG[round - 1];
+      ties.push({
+        id: id++,
+        round,
+        slot,
+        homeId,
+        awayId,
+        homeSourceLabel: homeId === null ? `Winner ${feederTag}${homeFeeder.slot}` : undefined,
+        awaySourceLabel: awayId === null ? `Winner ${feederTag}${awayFeeder.slot}` : undefined,
+        homeScore: null,
+        awayScore: null,
+        winnerId: null,
+        status: homeId !== null && awayId !== null ? "ready" : "pending",
+      });
+    }
+    previousCount = count;
+  }
+
+  return ties;
+}
+
+export const TIES: TieSeed[] = buildTies();
+
+export const MAX_ROUND = Math.max(...TIES.map((tie) => tie.round));
 
 export const TOURNAMENT = {
   id: 1,

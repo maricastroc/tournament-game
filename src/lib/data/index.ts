@@ -8,12 +8,15 @@ import type {
   Fixture,
   Group,
   OverviewData,
+  PhasePill,
   TieSide,
   TournamentMeta,
 } from "@/lib/types";
+import { shortRound } from "@/lib/format";
 import {
   GROUPS,
   KNOCKOUT_STAGE_ID,
+  MAX_ROUND,
   TIES,
   TOURNAMENT,
   team,
@@ -45,17 +48,21 @@ function onlyDemo<T>(id: number, build: () => T, empty: T): () => T {
 }
 
 function demoMeta(): TournamentMeta {
+  const phases: PhasePill[] = [{ key: "groups", label: "Groups", state: "done" }];
+  for (let round = 1; round <= MAX_ROUND; round++) {
+    phases.push({
+      key: `r${round}`,
+      label: shortRound(round, MAX_ROUND),
+      state: round === 1 ? "now" : "todo",
+    });
+  }
+
   return {
     id: TOURNAMENT.id,
     name: TOURNAMENT.name,
     status: TOURNAMENT.status,
-    phaseLabel: "Knockout · Quarterfinals",
-    phases: [
-      { key: "groups", label: "Groups", state: "done" },
-      { key: "quarters", label: "Quarters", state: "now" },
-      { key: "semis", label: "Semis", state: "todo" },
-      { key: "final", label: "Final", state: "todo" },
-    ],
+    phaseLabel: "Knockout",
+    phases,
   };
 }
 

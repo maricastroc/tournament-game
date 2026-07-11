@@ -1,5 +1,5 @@
 import { api } from "@/lib/api/client";
-import { roundTag } from "@/lib/format";
+import { roundTag, shortRound } from "@/lib/format";
 import { titleOddsFrom } from "@/lib/forecast/bracket";
 import { attachOutlookToGroups } from "./outlook";
 import { buildRecap, pickFeaturedGroup, pickNextFixture } from "@/lib/overview";
@@ -194,15 +194,6 @@ function consoleGroupsFromDetail(detail: TournamentDetail, teams: TeamMap): Grou
 export async function liveConsoleGroups(id: number): Promise<GroupDetail[]> {
   const detail = await api.getTournament(id);
   return consoleGroupsFromDetail(detail, teamMapFrom(detail));
-}
-
-function shortRound(round: number, maxRound: number): string {
-  const distance = maxRound - round;
-  if (distance === 0) return "Final";
-  if (distance === 1) return "Semis";
-  if (distance === 2) return "Quarters";
-  if (distance === 3) return "R16";
-  return `R${round}`;
 }
 
 export async function liveMeta(id: number): Promise<TournamentMeta> {

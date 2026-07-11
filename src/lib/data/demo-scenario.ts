@@ -12,7 +12,7 @@ import type {
 } from "@/lib/types";
 import { GROUPS, KNOCKOUT_STAGE_ID, MAX_ROUND, TIES, team } from "./copa-atlas";
 
-// Group matches carry no id, so mint one. Knockout picks use the tie id (1–7); groups start
+// Group matches carry no id, so mint one. Knockout picks use the tie id (1–15); groups start
 // at 100 to keep the two id spaces disjoint (see isGroupFixtureId).
 const groupMatchId = (groupId: number, index: number): number => groupId * 100 + index;
 const isGroupFixtureId = (fixtureId: number): boolean => fixtureId >= 100;
