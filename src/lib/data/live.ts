@@ -2,7 +2,7 @@ import { api } from "@/lib/api/client";
 import { roundTag } from "@/lib/format";
 import { titleOddsFrom } from "@/lib/forecast/bracket";
 import { attachOutlookToGroups } from "./outlook";
-import { pickFeaturedGroup, pickNextFixture } from "@/lib/overview";
+import { buildRecap, pickFeaturedGroup, pickNextFixture } from "@/lib/overview";
 import type {
   Bracket,
   BracketTie,
@@ -167,6 +167,12 @@ export async function liveOverview(id: number): Promise<OverviewData> {
     nextFixture: pickNextFixture(consoleGroups, featured, bracket),
     stats: computeStats(groups),
     titleOdds: titleOddsFrom(bracket, groups),
+    champion: bracket.champion,
+    recap: buildRecap(
+      bracket,
+      groups,
+      consoleGroups.flatMap((group) => group.fixtures),
+    ),
   };
 }
 

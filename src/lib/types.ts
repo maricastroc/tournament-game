@@ -114,12 +114,39 @@ export interface TitleOdd {
   prob: number;
 }
 
+export interface FinalRecap {
+  roundLabel: string;
+  home: TieSide;
+  away: TieSide;
+  decidedByPenalties: boolean;
+}
+
+export interface RoadStep {
+  roundLabel: string;
+  opponent: Team;
+  score: string;
+}
+
+export interface Superlative {
+  label: string;
+  team: Team;
+  detail: string;
+}
+
+export interface OverviewRecap {
+  final: FinalRecap | null;
+  championRoad: RoadStep[];
+  superlatives: Superlative[];
+}
+
 export interface OverviewData {
   featuredGroup: Group | null;
   liveFixture: Fixture | null;
   nextFixture: Fixture | null;
   stats: OverviewStat[];
   titleOdds: TitleOdd[];
+  champion: Team | null;
+  recap: OverviewRecap | null;
 }
 
 export interface TournamentSummary {

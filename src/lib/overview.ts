@@ -1,5 +1,16 @@
 import { roundName } from "@/lib/format";
-import type { Bracket, Fixture, Group, GroupDetail } from "@/lib/types";
+import type {
+  Bracket,
+  BracketTie,
+  Fixture,
+  FixtureDetail,
+  Group,
+  GroupDetail,
+  OverviewRecap,
+  RoadStep,
+  Superlative,
+  TieSide,
+} from "@/lib/types";
 
 // How up-for-grabs a group still is: Σ p(1−p) over the advance odds — peaks when a spot
 // is a coin-flip, drops to zero once every team is settled.
@@ -82,4 +93,155 @@ export function pickNextFixture(
   bracket: Bracket,
 ): Fixture | null {
   return nextGroupFixture(consoleGroups, featured) ?? nextReadyTie(bracket);
+}
+
+// A score from one side's perspective: "2–0", or "1–1 (4–2 pens)" when penalties settled it.
+function scoreLine(mine: TieSide, theirs: TieSide, byPenalties: boolean): string {
+  const base = `${mine.score ?? 0}–${theirs.score ?? 0}`;
+  if (byPenalties && mine.penalties != null && theirs.penalties != null) {
+    return `${base} (${mine.penalties}–${theirs.penalties} pens)`;
+  }
+  return base;
+}
+
+// The champion's run to the title: every tie they won, round by round.
+function championRoad(bracket: Bracket, maxRound: number): RoadStep[] {
+  const championId = bracket.champion?.id;
+  if (championId == null) return [];
+  return bracket.ties
+    .filter((tie) => tie.winnerId === championId)
+    .sort((a, b) => a.round - b.round)
+    .flatMap((tie) => {
+      const mine = tie.home.team?.id === championId ? tie.home : tie.away;
+      const theirs = tie.home.team?.id === championId ? tie.away : tie.home;
+      if (!theirs.team) return [];
+      return [
+        {
+          roundLabel: roundName(tie.round, maxRound),
+          opponent: theirs.team,
+          score: scoreLine(mine, theirs, tie.decidedByPenalties),
+        },
+      ];
+    });
+}
+
+// The championship match — the top-round tie the champion played in.
+function finalTie(bracket: Bracket, maxRound: number): BracketTie | null {
+  const championId = bracket.champion?.id;
+  return (
+    bracket.ties.find(
+      (tie) =>
+        tie.round === maxRound &&
+        (tie.home.team?.id === championId || tie.away.team?.id === championId),
+    ) ?? null
+  );
+}
+
+interface Played {
+  home: string;
+  away: string;
+  homeScore: number;
+  awayScore: number;
+}
+
+function collectPlayed(groupFixtures: FixtureDetail[], bracket: Bracket): Played[] {
+  const fromGroups = groupFixtures.flatMap((fixture) =>
+    fixture.home && fixture.away && fixture.homeScore != null && fixture.awayScore != null
+      ? [
+          {
+            home: fixture.home.name,
+            away: fixture.away.name,
+            homeScore: fixture.homeScore,
+            awayScore: fixture.awayScore,
+          },
+        ]
+      : [],
+  );
+  const fromTies = bracket.ties.flatMap((tie) =>
+    tie.home.team && tie.away.team && tie.home.score != null && tie.away.score != null
+      ? [
+          {
+            home: tie.home.team.name,
+            away: tie.away.team.name,
+            homeScore: tie.home.score,
+            awayScore: tie.away.score,
+          },
+        ]
+      : [],
+  );
+  return [...fromGroups, ...fromTies];
+}
+
+// Tournament-wide highlights, drawn from the final group tables and every played match.
+function superlatives(groups: Group[], bracket: Bracket, groupFixtures: FixtureDetail[]): Superlative[] {
+  const out: Superlative[] = [];
+  const rows = groups.flatMap((group) => group.standings).filter((row) => row.played > 0);
+
+  const topAttack = rows.reduce<(typeof rows)[number] | null>(
+    (best, row) => (!best || row.goalsFor > best.goalsFor ? row : best),
+    null,
+  );
+  if (topAttack) {
+    out.push({
+      label: "Best attack",
+      team: topAttack.team,
+      detail: `${topAttack.goalsFor} scored`,
+    });
+  }
+
+  const meanestDefense = rows.reduce<(typeof rows)[number] | null>(
+    (best, row) => (!best || row.goalsAgainst < best.goalsAgainst ? row : best),
+    null,
+  );
+  if (meanestDefense) {
+    out.push({
+      label: "Meanest defense",
+      team: meanestDefense.team,
+      detail: `${meanestDefense.goalsAgainst} conceded`,
+    });
+  }
+
+  const teamByName = new Map(rows.map((row) => [row.team.name, row.team] as const));
+  const biggest = collectPlayed(groupFixtures, bracket).reduce<{ margin: number; text: string; winner: string } | null>(
+    (best, match) => {
+      const margin = Math.abs(match.homeScore - match.awayScore);
+      if (margin === 0 || (best && margin <= best.margin)) return best;
+      const homeWon = match.homeScore > match.awayScore;
+      const winner = homeWon ? match.home : match.away;
+      const loser = homeWon ? match.away : match.home;
+      const hi = Math.max(match.homeScore, match.awayScore);
+      const lo = Math.min(match.homeScore, match.awayScore);
+      return { margin, winner, text: `${hi}–${lo} vs ${loser}` };
+    },
+    null,
+  );
+  const biggestTeam = biggest && teamByName.get(biggest.winner);
+  if (biggest && biggestTeam) {
+    out.push({ label: "Biggest win", team: biggestTeam, detail: biggest.text });
+  }
+
+  return out;
+}
+
+// The full end-of-tournament recap — null until a champion is crowned.
+export function buildRecap(
+  bracket: Bracket,
+  groups: Group[],
+  groupFixtures: FixtureDetail[],
+): OverviewRecap | null {
+  if (!bracket.champion) return null;
+  const maxRound = Math.max(...bracket.ties.map((tie) => tie.round), 1);
+  const decider = finalTie(bracket, maxRound);
+  return {
+    final: decider
+      ? {
+          roundLabel: roundName(maxRound, maxRound),
+          home: decider.home,
+          away: decider.away,
+          decidedByPenalties: decider.decidedByPenalties,
+        }
+      : null,
+    championRoad: championRoad(bracket, maxRound),
+    superlatives: superlatives(groups, bracket, groupFixtures),
+  };
 }

@@ -1,7 +1,7 @@
 import { computeStandings } from "@/lib/standings";
 import { titleOddsFrom } from "@/lib/forecast/bracket";
 import { attachOutlookToGroups } from "./outlook";
-import { pickFeaturedGroup, pickNextFixture } from "@/lib/overview";
+import { buildRecap, pickFeaturedGroup, pickNextFixture } from "@/lib/overview";
 import type {
   Bracket,
   BracketTie,
@@ -157,6 +157,8 @@ function demoOverview(): OverviewData {
       { value: String(groups.length * 2), label: "Teams through" },
     ],
     titleOdds: titleOddsFrom(bracket, groups),
+    champion: bracket.champion,
+    recap: buildRecap(bracket, groups, []),
   };
 }
 
@@ -166,6 +168,8 @@ const EMPTY_OVERVIEW: OverviewData = {
   nextFixture: null,
   stats: [],
   titleOdds: [],
+  champion: null,
+  recap: null,
 };
 
 export function getOverview(id: number): Promise<OverviewData> {

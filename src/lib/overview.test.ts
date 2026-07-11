@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickFeaturedGroup, pickNextFixture } from "@/lib/overview";
+import { buildRecap, pickFeaturedGroup, pickNextFixture } from "@/lib/overview";
 import type {
   Bracket,
   BracketTie,
@@ -131,5 +131,95 @@ describe("pickNextFixture", () => {
 
   it("returns null when nothing is scheduled and no tie is ready", () => {
     expect(pickNextFixture([], null, noBracket)).toBeNull();
+  });
+});
+
+describe("buildRecap", () => {
+  const tie = (
+    round: number,
+    home: Team,
+    away: Team,
+    hs: number,
+    as: number,
+    opts: { pens?: [number, number]; winnerId?: number } = {},
+  ): BracketTie => ({
+    id: round * 10,
+    round,
+    slot: 1,
+    status: "decided",
+    home: { team: home, score: hs, penalties: opts.pens?.[0] ?? null } as TieSide,
+    away: { team: away, score: as, penalties: opts.pens?.[1] ?? null } as TieSide,
+    winnerId: opts.winnerId ?? (hs >= as ? home.id : away.id),
+    decidedByPenalties: opts.pens != null,
+  });
+
+  const standing = (t: Team, gf: number, ga: number): StandingRow => ({
+    position: 1,
+    team: t,
+    played: 3,
+    won: 0,
+    drawn: 0,
+    lost: 0,
+    goalsFor: gf,
+    goalsAgainst: ga,
+    goalDifference: gf - ga,
+    points: 0,
+    form: [],
+    qualified: false,
+  });
+
+  const playedFixture = (id: number, home: Team, away: Team, hs: number, as: number): FixtureDetail => ({
+    id,
+    tieId: null,
+    home,
+    away,
+    homeScore: hs,
+    awayScore: as,
+    homePenalties: null,
+    awayPenalties: null,
+    status: "finished",
+    version: 0,
+  });
+
+  const groups: Group[] = [
+    group(1, "A", [standing(team(1), 8, 3), standing(team(2), 4, 0)]),
+    group(2, "B", [standing(team(3), 5, 2), standing(team(4), 1, 6)]),
+  ];
+
+  const bracket: Bracket = {
+    stageId: 1,
+    champion: team(1),
+    ties: [
+      tie(1, team(1), team(2), 2, 0),
+      tie(2, team(1), team(3), 1, 1, { pens: [4, 2], winnerId: 1 }),
+      tie(3, team(1), team(4), 3, 1),
+    ],
+  };
+
+  it("returns null when there is no champion", () => {
+    expect(buildRecap({ stageId: 1, champion: null, ties: [] }, groups, [])).toBeNull();
+  });
+
+  it("traces the champion's road in round order, formatting penalty wins", () => {
+    const recap = buildRecap(bracket, groups, [])!;
+    expect(recap.championRoad).toHaveLength(3);
+    expect(recap.championRoad.map((step) => step.opponent.id)).toEqual([2, 3, 4]);
+    expect(recap.championRoad[0].score).toBe("2–0");
+    expect(recap.championRoad[1].score).toBe("1–1 (4–2 pens)");
+  });
+
+  it("identifies the final as the top-round tie", () => {
+    const recap = buildRecap(bracket, groups, [])!;
+    expect(recap.final?.home.team?.id).toBe(1);
+    expect(recap.final?.away.team?.id).toBe(4);
+  });
+
+  it("derives best attack, meanest defense and biggest win", () => {
+    const recap = buildRecap(bracket, groups, [playedFixture(99, team(3), team(4), 5, 0)])!;
+    const byLabel = Object.fromEntries(recap.superlatives.map((s) => [s.label, s]));
+    expect(byLabel["Best attack"].team.id).toBe(1);
+    expect(byLabel["Meanest defense"].team.id).toBe(2);
+    expect(byLabel["Biggest win"].team.id).toBe(3);
+    expect(byLabel["Biggest win"].detail).toBe("5–0 vs T4");
   });
 });
