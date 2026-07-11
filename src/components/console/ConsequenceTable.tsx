@@ -1,6 +1,7 @@
 import type { StandingRow } from "@/lib/types";
 import { describeMove } from "@/lib/console";
 import { Flag } from "@/components/ui/Flag";
+import { useReorderFlip } from "@/components/ui/useReorderFlip";
 
 interface ConsequenceTableProps {
   groupName: string;
@@ -18,6 +19,7 @@ export function ConsequenceTable({
   previewKey,
 }: ConsequenceTableProps) {
   const baseById = new Map(base.map((row) => [row.team.id, row]));
+  const flip = useReorderFlip(previewKey);
 
   return (
     <div className="min-w-0 px-5 pt-2 pb-6 sm:px-6">
@@ -28,17 +30,17 @@ export function ConsequenceTable({
         {dirty ? "Recalculating as you edit." : "Live table from the results so far."}
       </p>
 
-      <div
-        key={previewKey}
-        className="overflow-hidden rounded-md border border-line bg-surface motion-safe:animate-rise"
-      >
+      <div className="overflow-hidden rounded-md border border-line bg-surface motion-safe:animate-rise">
         {preview.map((row) => {
-          const move = describeMove(baseById.get(row.team.id), row);
+          const baseRow = baseById.get(row.team.id);
+          const move = describeMove(baseRow, row);
           return (
             <div
               key={row.team.id}
+              ref={flip(row.team.id)}
               className={[
-                "grid grid-cols-[26px_1fr_auto_auto] items-center gap-3 border-t border-line px-4 py-3 tabular-nums first:border-t-0",
+                "grid grid-cols-[26px_1fr_auto_auto] items-center gap-3 border-t border-l-2 border-line border-l-transparent px-4 py-3 tabular-nums first:border-t-0",
+                row.qualified && "border-l-amber",
                 move.dir === "up" && "bg-win/5",
                 move.dir === "down" && "bg-loss/5",
               ]
