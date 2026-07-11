@@ -1,13 +1,19 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import type { GroupDetail } from "@/lib/types";
 import { useGroupEditor } from "./useGroupEditor";
 import { FixtureRow } from "./FixtureRow";
 import { ConsequenceTable } from "./ConsequenceTable";
 
-export function GroupEditor({ group }: { group: GroupDetail }) {
+export function GroupEditor({ group, onSaved }: { group: GroupDetail; onSaved?: () => void }) {
   const editor = useGroupEditor(group);
+
+  useEffect(() => {
+    if (editor.savedNonce === 0) return;
+    onSaved?.();
+  }, [editor.savedNonce, onSaved]);
 
   return (
     <div className="mt-5 grid grid-cols-1 gap-y-8 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-0">

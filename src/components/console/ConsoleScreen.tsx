@@ -1,12 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { GroupDetail } from "@/lib/types";
+import { useAuth } from "@/lib/auth/context";
+import { CascadeTimeline } from "@/components/whatif/CascadeTimeline";
 import { GroupEditor } from "./GroupEditor";
+import { useResultCascade } from "./useResultCascade";
 
-export function ConsoleScreen({ groups }: { groups: GroupDetail[] }) {
+export function ConsoleScreen({
+  groups,
+  tournamentId,
+}: {
+  groups: GroupDetail[];
+  tournamentId: number;
+}) {
   const editable = groups.filter((group) => group.fixtures.some((f) => f.home && f.away));
   const [selectedName, setSelectedName] = useState(editable[0]?.name ?? "");
+  const { status, token } = useAuth();
+  const authed = status === "authed" && token !== null;
+  const router = useRouter();
+  const { steps, nonce, report, dismiss } = useResultCascade(tournamentId, authed);
+  const handleSaved = useCallback(() => {
+    router.refresh();
+    report();
+  }, [router, report]);
 
   if (editable.length === 0) {
     return (
@@ -22,6 +40,12 @@ export function ConsoleScreen({ groups }: { groups: GroupDetail[] }) {
 
   return (
     <div className="px-5 pt-2 sm:px-6">
+      <CascadeTimeline
+        key={nonce}
+        steps={steps}
+        title="What your result caused"
+        onDismiss={dismiss}
+      />
       <div className="mb-1.5 font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-mute">
         Group
       </div>
@@ -46,7 +70,7 @@ export function ConsoleScreen({ groups }: { groups: GroupDetail[] }) {
         })}
       </div>
 
-      <GroupEditor key={group.name} group={group} />
+      <GroupEditor key={group.name} group={group} onSaved={handleSaved} />
     </div>
   );
 }

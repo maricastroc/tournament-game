@@ -18,7 +18,7 @@ export default async function ConsolePage() {
         title="Edit results"
         subtitle="Pick a group, adjust any score in place, and watch the table recalculate. Each result saves on its own, atomically."
       />
-      <ConsoleScreen groups={groups} />
+      <ConsoleScreen groups={groups} tournamentId={tournamentId} />
     </div>
   );
 }

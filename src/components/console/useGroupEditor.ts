@@ -70,6 +70,8 @@ export function useGroupEditor(group: GroupDetail) {
     return init;
   });
 
+  const [savedNonce, setSavedNonce] = useState(0);
+
   const rowsRef = useRef(rows);
   useEffect(() => {
     rowsRef.current = rows;
@@ -125,6 +127,7 @@ export function useGroupEditor(group: GroupDetail) {
           },
         };
       });
+      setSavedNonce((n) => n + 1);
     } catch (err) {
       notifyApiError(err);
       if (!mounted.current) return;
@@ -147,5 +150,5 @@ export function useGroupEditor(group: GroupDetail) {
     timers.current[id] = setTimeout(() => save(id), SAVE_DELAY);
   }
 
-  return { authed, fixtures, rows, base, preview, dirty, previewKey, setScore };
+  return { authed, fixtures, rows, base, preview, dirty, previewKey, setScore, savedNonce };
 }

@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import type { CascadeStep } from "@/lib/whatif/cascade";
 
 const TONE: Record<CascadeStep["tone"], string> = {
@@ -7,14 +7,34 @@ const TONE: Record<CascadeStep["tone"], string> = {
   info: "text-amber-ink",
 };
 
-export function CascadeTimeline({ steps }: { steps: CascadeStep[] }) {
+export function CascadeTimeline({
+  steps,
+  title = "How it propagates",
+  onDismiss,
+}: {
+  steps: CascadeStep[];
+  title?: string;
+  onDismiss?: () => void;
+}) {
   if (steps.length === 0) return null;
 
   return (
     <div className="mb-6">
-      <p className="mb-2 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-amber">
-        ◆ How it propagates
-      </p>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-amber">
+          ◆ {title}
+        </p>
+        {onDismiss && (
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label="Dismiss"
+            className="text-ink-mute transition-colors hover:text-ink"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
       <ol className="overflow-hidden rounded-md border border-line bg-surface motion-safe:animate-rise">
         {steps.map((step, index) => (
           <li
