@@ -16,6 +16,14 @@ export const SUGGESTED: DraftTeam[] = [
   { name: "Portugal", flag: "🇵🇹" },
   { name: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
   { name: "Netherlands", flag: "🇳🇱" },
+  { name: "Belgium", flag: "🇧🇪" },
+  { name: "Italy", flag: "🇮🇹" },
+  { name: "Croatia", flag: "🇭🇷" },
+  { name: "Uruguay", flag: "🇺🇾" },
+  { name: "Mexico", flag: "🇲🇽" },
+  { name: "Japan", flag: "🇯🇵" },
+  { name: "Denmark", flag: "🇩🇰" },
+  { name: "Colombia", flag: "🇨🇴" },
 ];
 
 export function distribute(teams: Team[], numGroups: number): number[][] {

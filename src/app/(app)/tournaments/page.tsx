@@ -18,6 +18,8 @@ const DEMO_CARD: TournamentSummary = {
   id: DEMO_TOURNAMENT_ID,
   name: DEMO_TOURNAMENT_NAME,
   status: "active",
+  teamsCount: 32,
+  stagesCount: 2,
 };
 
 export default function TournamentsPage() {

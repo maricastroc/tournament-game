@@ -334,7 +334,7 @@ function TeamEditRow({
 
 function RenameHint() {
   return (
-    <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-mute opacity-0 transition-opacity group-hover:opacity-100">
+    <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-mute opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
       Rename
     </span>
   );
