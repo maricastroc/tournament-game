@@ -15,14 +15,45 @@ export function ProjectedStandings({ projection, baseline }: ProjectedStandingsP
     ]),
   );
 
+  const affected = new Set<number>();
+  for (const group of projection.groups) {
+    const base = baselineByGroup.get(group.id);
+    if (!base) continue;
+    const changed = group.standings.some((row) => {
+      const before = base.get(row.team.id);
+      return (
+        before !== undefined &&
+        (before.position !== row.position ||
+          before.points !== row.points ||
+          before.goalDifference !== row.goalDifference)
+      );
+    });
+    if (changed) affected.add(group.id);
+  }
+  const hasChanges = affected.size > 0;
+
   return (
-    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+    <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(255px,1fr))]">
       {projection.groups.map((group) => {
         const base = baselineByGroup.get(group.id) ?? new Map<number, StandingRow>();
+        const isAffected = affected.has(group.id);
         return (
-          <section key={group.id} className="rounded-[11px] border border-line bg-surface-2/60 p-4">
+          <section
+            key={group.id}
+            className={[
+              "rounded-[11px] border p-4 transition-[opacity,border-color] duration-200",
+              hasChanges && isAffected
+                ? "border-amber-line bg-amber-soft/[0.05]"
+                : hasChanges
+                  ? "border-line bg-surface-2/40 opacity-45"
+                  : "border-line bg-surface-2/60",
+            ].join(" ")}
+          >
             <header className="mb-3 flex items-center justify-between">
               <p className="flex items-center gap-2.5">
+                {isAffected && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber" aria-label="changed" />
+                )}
                 <span className="eyebrow">Group</span>
                 <span className="rounded-[5px] border border-amber-line px-1.5 py-px font-mono text-[11px] uppercase tracking-[0.08em] text-amber-ink">
                   {group.name}
