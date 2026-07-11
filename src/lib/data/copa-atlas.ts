@@ -206,6 +206,6 @@ export const MAX_ROUND = Math.max(...TIES.map((tie) => tie.round));
 
 export const TOURNAMENT = {
   id: 1,
-  name: "Copa Atlas 2026",
+  name: "Atlas Cup 2026",
   status: "active" as const,
 };

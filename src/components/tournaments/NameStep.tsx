@@ -16,7 +16,7 @@ export function NameStep({ name, onNameChange, busy, onSubmit }: NameStepProps) 
         icon={Trophy}
         value={name}
         onChange={onNameChange}
-        placeholder="e.g. Copa Atlas 2026"
+        placeholder="e.g. Atlas Cup 2026"
         clearLabel="Clear tournament name"
         className="rounded-[10px] border border-line-2 bg-surface-2 py-3.5 text-[15px] text-ink outline-none transition-colors duration-150 placeholder:text-ink-mute focus:border-amber-line"
       />

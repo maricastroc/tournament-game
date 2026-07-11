@@ -91,7 +91,7 @@ reference is the API's `docs/mocks/bracket-mocks.html`.
   token (kept in `localStorage`, validated on mount) unlocks owner actions —
   saving a result, building and deleting tournaments.
 - **Works with or without the API.** Reads try the live API first and fall back
-  to the bundled "Copa Atlas 2026" demo when it's unreachable, so the UI always
+  to the bundled "Atlas Cup 2026" demo when it's unreachable, so the UI always
   renders.
 
 ## Architecture
@@ -118,7 +118,7 @@ src/
       live.ts          live source: fetch + enrich (PT→English names, flags)
       scenario.ts      what-if reads: live scenario projection + fallback wiring
       demo-scenario.ts offline what-if projector (client-side cascade for the demo)
-      copa-atlas.ts    "Copa Atlas 2026" demo fixtures (mirrors the API seeder)
+      copa-atlas.ts    "Atlas Cup 2026" demo fixtures (mirrors the API seeder)
       index.ts         public reads: try live, fall back to demo
 ```
 
