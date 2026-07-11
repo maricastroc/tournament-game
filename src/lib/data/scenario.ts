@@ -4,27 +4,16 @@ import type {
   Bracket,
   ScenarioProjection,
   ScenarioResult,
-  StandingRow,
-  Team,
   WhatIfFixture,
   WhatIfSetup,
 } from "@/lib/types";
 import { DEMO_TOURNAMENT_ID } from "@/lib/tournament/constants";
-import { TEAMS } from "./copa-atlas";
 import { demoProjectScenario, demoWhatIfSetup } from "./demo-scenario";
 
 export type { WhatIfFixture, WhatIfSetup } from "@/lib/types";
 
 const LIVE_ENABLED = process.env.NEXT_PUBLIC_USE_LIVE_API !== "false";
 const EMPTY_SETUP: WhatIfSetup = { fixtures: [], baseline: { groups: [], bracket: null } };
-
-function enrichTeam(team: Team | null): Team | null {
-  return team === null ? null : (TEAMS[team.id] ?? team);
-}
-
-function enrichRow(row: StandingRow): StandingRow {
-  return { ...row, team: TEAMS[row.team.id] ?? row.team };
-}
 
 function finalizeBracket(bracket: Bracket): Bracket {
   const ties = [...bracket.ties].sort((a, b) => a.round - b.round || a.id - b.id);
@@ -34,8 +23,6 @@ function finalizeBracket(bracket: Bracket): Bracket {
     const slot = (slotByRound.get(tie.round) ?? 0) + 1;
     slotByRound.set(tie.round, slot);
     tie.slot = slot;
-    tie.home = { ...tie.home, team: enrichTeam(tie.home.team) };
-    tie.away = { ...tie.away, team: enrichTeam(tie.away.team) };
   }
 
   const maxRound = Math.max(...ties.map((tie) => tie.round), 1);
@@ -49,15 +36,12 @@ function finalizeBracket(bracket: Bracket): Bracket {
     }
   }
 
-  return { ...bracket, champion: enrichTeam(bracket.champion), ties };
+  return { ...bracket, ties };
 }
 
 function enrich(projection: ScenarioProjection): ScenarioProjection {
   return {
-    groups: projection.groups.map((group) => ({
-      ...group,
-      standings: group.standings.map(enrichRow),
-    })),
+    groups: projection.groups,
     bracket: projection.bracket ? finalizeBracket(projection.bracket) : null,
   };
 }
@@ -97,7 +81,6 @@ export async function projectScenario(
 
 async function liveWhatIfSetup(tournamentId: number): Promise<WhatIfSetup> {
   const detail = await api.getTournament(tournamentId);
-  const enrichName = (team: Team): Team => TEAMS[team.id] ?? team;
 
   const fixtures: WhatIfFixture[] = [];
 
@@ -110,9 +93,9 @@ async function liveWhatIfSetup(tournamentId: number): Promise<WhatIfSetup> {
             id: fixture.id,
             phase: "group",
             phaseLabel: group.name,
-            label: `Group ${group.name} · ${enrichName(fixture.home).name} vs ${enrichName(fixture.away).name}`,
-            home: enrichName(fixture.home),
-            away: enrichName(fixture.away),
+            label: `Group ${group.name} · ${fixture.home.name} vs ${fixture.away.name}`,
+            home: fixture.home,
+            away: fixture.away,
             homeScore: fixture.homeScore,
             awayScore: fixture.awayScore,
             status: fixture.status,
@@ -132,9 +115,9 @@ async function liveWhatIfSetup(tournamentId: number): Promise<WhatIfSetup> {
         id: fixture.id,
         phase: "knockout",
         phaseLabel: shortRound(round, maxRound),
-        label: `${roundName(round, maxRound)} · ${enrichName(fixture.home).name} vs ${enrichName(fixture.away).name}`,
-        home: enrichName(fixture.home),
-        away: enrichName(fixture.away),
+        label: `${roundName(round, maxRound)} · ${fixture.home.name} vs ${fixture.away.name}`,
+        home: fixture.home,
+        away: fixture.away,
         homeScore: fixture.homeScore,
         awayScore: fixture.awayScore,
         status: fixture.status,

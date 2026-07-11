@@ -17,7 +17,6 @@ import type {
   TournamentDetail,
   TournamentMeta,
 } from "@/lib/types";
-import { TEAMS } from "./copa-atlas";
 import { buildTiebreakNote } from "./shared";
 
 type TeamMap = Map<number, Team>;
@@ -25,7 +24,7 @@ type TeamMap = Map<number, Team>;
 function teamMapFrom(detail: TournamentDetail): TeamMap {
   const map = new Map<number, Team>();
   for (const team of detail.teams) {
-    map.set(team.id, TEAMS[team.id] ?? team);
+    map.set(team.id, team);
   }
   return map;
 }

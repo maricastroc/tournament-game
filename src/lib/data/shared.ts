@@ -1,21 +1,11 @@
 import { formatGoalDifference } from "@/lib/format";
-import type { StandingRow, Team, TiebreakNote } from "@/lib/types";
-import { TEAMS } from "./copa-atlas";
+import type { StandingRow, TiebreakNote } from "@/lib/types";
 
 export const GROUP_IDS = [1, 2, 3, 4] as const;
 const GROUP_NAMES: Record<number, string> = { 1: "A", 2: "B", 3: "C", 4: "D" };
 
 export function groupName(id: number): string {
   return GROUP_NAMES[id] ?? String(id);
-}
-
-export function enrichTeam(team: Team): Team {
-  const known = TEAMS[team.id];
-  return known ? { ...known } : team;
-}
-
-export function enrichStanding(row: StandingRow): StandingRow {
-  return { ...row, team: enrichTeam(row.team) };
 }
 
 function separator(a: StandingRow, b: StandingRow): string {
