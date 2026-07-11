@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHeading } from "@/components/ui/PageHeading";
 import { GroupCard } from "@/components/standings/GroupCard";
-import { getStandingsView } from "@/lib/data";
+import { getConsoleGroups, getStandingsView } from "@/lib/data";
+import type { RawMatch } from "@/lib/standings";
 import { getCurrentTournamentId } from "@/lib/tournament/current";
 
 export const metadata: Metadata = { title: "Standings" };
@@ -11,7 +12,32 @@ export const dynamic = "force-dynamic";
 
 export default async function StandingsPage() {
   const tournamentId = await getCurrentTournamentId();
-  const groups = await getStandingsView(tournamentId);
+  const [groups, consoleGroups] = await Promise.all([
+    getStandingsView(tournamentId),
+    getConsoleGroups(tournamentId),
+  ]);
+  const detailById = new Map(consoleGroups.map((detail) => [detail.id, detail]));
+
+  const resultsOf = (groupId: number): RawMatch[] =>
+    (detailById.get(groupId)?.fixtures ?? []).flatMap((fixture) => {
+      if (
+        fixture.status !== "finished" ||
+        !fixture.home ||
+        !fixture.away ||
+        fixture.homeScore == null ||
+        fixture.awayScore == null
+      ) {
+        return [];
+      }
+      return [
+        {
+          homeId: fixture.home.id,
+          awayId: fixture.away.id,
+          homeScore: fixture.homeScore,
+          awayScore: fixture.awayScore,
+        },
+      ];
+    });
 
   const notStarted =
     groups.length > 0 && groups.every((group) => group.standings.every((row) => row.played === 0));
@@ -45,7 +71,12 @@ export default async function StandingsPage() {
       {groups.length > 0 ? (
         <div className="grid gap-5 px-5 pt-3 sm:px-6 lg:grid-cols-2">
           {groups.map((group) => (
-            <GroupCard key={group.id} group={group} />
+            <GroupCard
+              key={group.id}
+              group={group}
+              teams={detailById.get(group.id)?.teams ?? group.standings.map((row) => row.team)}
+              matches={resultsOf(group.id)}
+            />
           ))}
         </div>
       ) : (
