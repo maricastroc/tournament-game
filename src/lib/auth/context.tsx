@@ -11,7 +11,7 @@ interface AuthValue {
   user: AuthUser | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, seedSample: boolean) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -70,8 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (name: string, email: string, password: string) => {
-      adopt(await api.register(name, email, password));
+    async (name: string, email: string, password: string, seedSample: boolean) => {
+      const result = await api.register(name, email, password, seedSample);
+
+      if (result.sample_tournament_id) {
+        setCurrentTournamentCookie(result.sample_tournament_id);
+      }
+      adopt(result);
     },
     [adopt],
   );

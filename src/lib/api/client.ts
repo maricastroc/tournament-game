@@ -152,6 +152,8 @@ interface AuthResponse {
   token: string;
   /** Present only for the demo account: the freshly cloned sandbox to switch to. */
   sandbox_tournament_id?: number;
+  /** Present when a new account opted into a starter sample tournament (owned, permanent). */
+  sample_tournament_id?: number;
 }
 
 export class ApiError extends Error {
@@ -360,10 +362,10 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
 
-  register: (name: string, email: string, password: string) =>
+  register: (name: string, email: string, password: string, seedSample: boolean) =>
     request<AuthResponse>("/register", {
       method: "POST",
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, seed_sample: seedSample }),
     }),
 
   me: (token: string) => request<AuthUser>("/user", { headers: authHeader(token) }),

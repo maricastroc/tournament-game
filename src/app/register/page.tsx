@@ -16,6 +16,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [seedSample, setSeedSample] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const destination = () => new URLSearchParams(window.location.search).get("from") || "/";
@@ -30,7 +31,7 @@ export default function RegisterPage() {
     event.preventDefault();
     setSubmitting(true);
     try {
-      await register(name.trim(), email.trim(), password);
+      await register(name.trim(), email.trim(), password, seedSample);
       router.replace(destination());
       router.refresh();
     } catch (err) {
@@ -84,6 +85,19 @@ export default function RegisterPage() {
               : "8 characters minimum"}
           </span>
         </div>
+
+        <label className="flex cursor-pointer items-start gap-2.5 rounded-[10px] border border-line-2 bg-surface-2/40 px-3.5 py-3 text-[13px] text-ink-dim transition-colors hover:border-amber-line/60">
+          <input
+            type="checkbox"
+            checked={seedSample}
+            onChange={(e) => setSeedSample(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-amber"
+          />
+          <span>
+            Start with a sample tournament
+            <span className="text-ink-mute"> — a prefilled Atlas Cup 2026, yours to explore and edit.</span>
+          </span>
+        </label>
 
         <AuthSubmit disabled={submitting || !valid}>
           {submitting ? "Creating account…" : "Create account"}
