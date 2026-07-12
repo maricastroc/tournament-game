@@ -15,7 +15,6 @@ export async function getCurrentTournamentId(): Promise<number> {
     return id;
   }
 
-  // The default (no/invalid selection) is the live demo template, not a hard-coded id.
   return (LIVE_ENABLED ? await api.demoTemplateId() : null) ?? DEMO_TOURNAMENT_ID;
 }
 

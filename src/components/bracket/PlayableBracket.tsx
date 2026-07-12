@@ -26,14 +26,17 @@ import { TieEditor, type Consequence } from "./TieEditor";
 export function PlayableBracket({
   initial,
   tournamentId,
+  spectator = false,
 }: {
   initial: BracketData;
   tournamentId: number;
+  /** Force a pure read-only render (the public /live view) regardless of who is watching. */
+  spectator?: boolean;
 }) {
   const { status, token } = useAuth();
   const router = useRouter();
   const canManage = useCanManage(tournamentId);
-  const readOnly = canManage === false;
+  const readOnly = spectator || canManage === false;
   const authed = status === "authed" && token !== null;
 
   const base = useMemo(() => initial.ties, [initial.ties]);
@@ -122,7 +125,7 @@ export function PlayableBracket({
 
   return (
     <div>
-      {readOnly && (
+      {readOnly && !spectator && (
         <div className="px-5 pt-4 sm:px-6">
           <ReadOnlyBanner />
         </div>

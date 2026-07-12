@@ -28,6 +28,5 @@ export function useCanManage(tournamentId: number): boolean | null {
     };
   }, [status, token, tournamentId]);
 
-  // Signed-out sessions can still play the local demo, so never gate them.
   return status === "authed" ? fetched : null;
 }

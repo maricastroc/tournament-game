@@ -27,7 +27,6 @@ const fixture = (
   version: 0,
 });
 
-// A 4-team bracket: two semifinal ties (round 1) feeding one final tie (round 2).
 const semisAndFinal: TieTopology[] = [tie(1, 1, 1), tie(2, 1, 2), tie(3, 2, 1)];
 const states = (ties: TieTopology[], fixtures: FixtureDetail[]) =>
   knockoutPhases(ties, fixtures).map((phase) => phase.state);

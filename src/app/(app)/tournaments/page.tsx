@@ -66,8 +66,6 @@ export default function TournamentsPage() {
     }
   }
 
-  // Show the read-only sample only as an entry point when you own nothing yet;
-  // once you have your own tournament, it's just clutter.
   const cards = tournaments.length > 0 ? tournaments : [DEMO_CARD];
 
   return (

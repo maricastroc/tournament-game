@@ -90,7 +90,7 @@ export function useTieEditor(ties: BracketTie[]) {
     const row = rowsRef.current[tieId];
     if (!row) return;
     const draw = row.home === row.away;
-    if (draw && row.homePen === row.awayPen) return; // a knockout tie can't end level
+    if (draw && row.homePen === row.awayPen) return;
 
     setRows((prev) => ({ ...prev, [tieId]: { ...prev[tieId], status: "saving" } }));
     try {
@@ -136,7 +136,7 @@ export function useTieEditor(ties: BracketTie[]) {
 
     if (!authed) return;
     if (timers.current[tieId]) clearTimeout(timers.current[tieId]);
-    // A level tie with no penalty separation is skipped by save() until it resolves.
+
     timers.current[tieId] = setTimeout(() => save(tieId), SAVE_DELAY);
   }
 
