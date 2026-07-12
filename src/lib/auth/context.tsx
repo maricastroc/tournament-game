@@ -64,7 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.sandbox_tournament_id) {
         setCurrentTournamentCookie(result.sandbox_tournament_id);
       } else {
-        // Land on a tournament the user actually owns, not the public demo default.
         const owned = await api.listTournaments(result.token).catch(() => []);
         if (owned.length > 0) setCurrentTournamentCookie(owned[0].id);
       }

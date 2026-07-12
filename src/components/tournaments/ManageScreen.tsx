@@ -3,9 +3,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowUpRight } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { notifyApiError, notifySuccess } from "@/lib/toast";
 import { useAuth } from "@/lib/auth/context";
+import { setCurrentTournamentCookie } from "@/lib/tournament/select";
 import type { Team, TournamentDetail } from "@/lib/types";
 
 export function ManageScreen({ tournamentId }: { tournamentId: number }) {
@@ -82,6 +84,27 @@ export function ManageScreen({ tournamentId }: { tournamentId: number }) {
   return (
     <Frame>
       <div className="max-w-2xl">
+        <section className="mb-5 rounded-[13px] border border-line bg-surface-2/60 p-5">
+          <p className="eyebrow mb-2.5">Live spectator view</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="max-w-sm text-[13.5px] text-ink-dim">
+              A read-only view that updates on its own as you enter results — open it in another tab
+              or share the link to let others follow along live.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentTournamentCookie(detail.id);
+                window.open("/live", "_blank", "noopener");
+              }}
+              className="inline-flex shrink-0 items-center gap-2 rounded-[9px] border border-line-2 px-3.5 py-2 text-[13px] font-semibold text-ink-dim transition-colors hover:border-amber-line hover:text-amber-ink"
+            >
+              Open live view
+              <ArrowUpRight className="h-4 w-4" />
+            </button>
+          </div>
+        </section>
+
         <section className="mb-5 rounded-[13px] border border-line bg-surface-2/60 p-5">
           <p className="eyebrow mb-2.5">Tournament name</p>
           <NameEditor
