@@ -179,12 +179,25 @@ export class ApiError extends Error {
     return (this.body as { errors?: Record<string, string[]> }).errors;
   }
 
+  /** Machine-readable denial reason on a 403 (e.g. "demo_expired", "not_owner"). */
+  get reason(): string | undefined {
+    if (typeof this.body !== "object" || this.body === null) return undefined;
+    const reason = (this.body as { reason?: unknown }).reason;
+    return typeof reason === "string" ? reason : undefined;
+  }
+
   get displayMessage(): string {
     if (this.isVersionConflict) {
       return "This result was changed elsewhere. Reload before editing again.";
     }
     if (this.status === 401) return "Your session has expired. Sign in again.";
-    if (this.status === 403) return "Only the tournament organizer can save results.";
+    if (this.status === 403) {
+      if (this.reason === "demo_expired") {
+        return "Your demo session expired — hit Reset in the top bar to start a fresh sandbox.";
+      }
+      const message = (this.body as { message?: string } | null)?.message;
+      return message ?? "Only the tournament organizer can save results.";
+    }
     const errors = this.fieldErrors;
     if (errors) return Object.values(errors).flat()[0] ?? "Invalid data.";
     if (typeof this.body === "object" && this.body !== null) {
