@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
-import { notifyApiError } from "@/lib/toast";
+import { notifyApiError, notifySuccess } from "@/lib/toast";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell, AuthSubmit } from "@/components/auth/AuthShell";
 import { DemoCallout } from "@/components/auth/DemoCallout";
@@ -28,7 +28,8 @@ export default function LoginPage() {
     event.preventDefault();
     setSubmitting(true);
     try {
-      await login(email, password);
+      const user = await login(email, password);
+      notifySuccess(`Welcome back, ${user.name.split(/\s+/)[0]}.`);
       router.replace(destination());
       router.refresh();
     } catch (err) {

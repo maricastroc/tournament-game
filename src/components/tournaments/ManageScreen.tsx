@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
-import { notifyApiError } from "@/lib/toast";
+import { notifyApiError, notifySuccess } from "@/lib/toast";
 import { useAuth } from "@/lib/auth/context";
 import type { Team, TournamentDetail } from "@/lib/types";
 
@@ -92,6 +92,7 @@ export function ManageScreen({ tournamentId }: { tournamentId: number }) {
             onSave={async (name) => {
               const summary = await api.updateTournament(token!, tournamentId, name);
               setDetail((d) => (d ? { ...d, name: summary.name } : d));
+              notifySuccess("Tournament renamed.");
               router.refresh();
             }}
           />
@@ -114,6 +115,7 @@ export function ManageScreen({ tournamentId }: { tournamentId: number }) {
                   setDetail((d) =>
                     d ? { ...d, teams: d.teams.map((t) => (t.id === updated.id ? updated : t)) } : d,
                   );
+                  notifySuccess(`${updated.name} updated.`);
                   router.refresh();
                 }}
               />

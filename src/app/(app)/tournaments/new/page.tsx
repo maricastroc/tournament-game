@@ -9,7 +9,7 @@ import { TeamsStep } from "@/components/tournaments/TeamsStep";
 import { GroupsStep } from "@/components/tournaments/GroupsStep";
 import { Steps } from "@/components/tournaments/wizard";
 import { api } from "@/lib/api/client";
-import { notifyApiError } from "@/lib/toast";
+import { notifyApiError, notifySuccess } from "@/lib/toast";
 import { useAuth } from "@/lib/auth/context";
 import { setCurrentTournamentCookie } from "@/lib/tournament/select";
 import {
@@ -108,6 +108,7 @@ export default function NewTournamentPage() {
 
     if (built) {
       setCurrentTournamentCookie(tournamentId!);
+      notifySuccess(`"${name.trim()}" is ready — fixtures and bracket generated.`);
       router.push("/console");
       router.refresh();
     }

@@ -8,7 +8,7 @@ import { PageHeading } from "@/components/ui/PageHeading";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { relativeDate } from "@/lib/format";
 import { api } from "@/lib/api/client";
-import { notifyApiError } from "@/lib/toast";
+import { notifyApiError, notifySuccess } from "@/lib/toast";
 import { useAuth } from "@/lib/auth/context";
 import { setCurrentTournamentCookie } from "@/lib/tournament/select";
 import { DEMO_TOURNAMENT_ID, DEMO_TOURNAMENT_NAME } from "@/lib/tournament/constants";
@@ -56,9 +56,11 @@ export default function TournamentsPage() {
 
   async function remove(id: number) {
     if (!token) return;
+    const name = tournaments.find((t) => t.id === id)?.name;
     try {
       await api.deleteTournament(token, id);
       setTournaments((current) => current.filter((t) => t.id !== id));
+      notifySuccess(name ? `"${name}" deleted.` : "Tournament deleted.");
     } catch (err) {
       notifyApiError(err);
     }

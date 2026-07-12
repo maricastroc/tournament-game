@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, User } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
-import { notifyApiError } from "@/lib/toast";
+import { notifyApiError, notifySuccess } from "@/lib/toast";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell, AuthSubmit } from "@/components/auth/AuthShell";
 
@@ -31,7 +31,12 @@ export default function RegisterPage() {
     event.preventDefault();
     setSubmitting(true);
     try {
-      await register(name.trim(), email.trim(), password, seedSample);
+      const user = await register(name.trim(), email.trim(), password, seedSample);
+      notifySuccess(
+        seedSample
+          ? `Welcome, ${user.name.split(/\s+/)[0]} — your account and sample tournament are ready.`
+          : `Welcome, ${user.name.split(/\s+/)[0]} — your account is ready.`,
+      );
       router.replace(destination());
       router.refresh();
     } catch (err) {

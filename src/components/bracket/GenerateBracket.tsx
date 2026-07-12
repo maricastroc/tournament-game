@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { api } from "@/lib/api/client";
-import { notifyApiError } from "@/lib/toast";
+import { notifyApiError, notifySuccess } from "@/lib/toast";
 import { useAuth } from "@/lib/auth/context";
 
 export function GenerateBracket({ tournamentId }: { tournamentId: number }) {
@@ -20,6 +20,7 @@ export function GenerateBracket({ tournamentId }: { tournamentId: number }) {
     setBusy(true);
     try {
       await api.buildKnockout(token, tournamentId);
+      notifySuccess("Knockout bracket generated.");
       router.refresh();
     } catch (err) {
       notifyApiError(err);

@@ -10,8 +10,8 @@ interface AuthValue {
   status: Status;
   user: AuthUser | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, seedSample: boolean) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthUser>;
+  register: (name: string, email: string, password: string, seedSample: boolean) => Promise<AuthUser>;
   logout: () => Promise<void>;
 }
 
@@ -69,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (owned.length > 0) setCurrentTournamentCookie(owned[0].id);
       }
       adopt(result);
+      return result.user;
     },
     [adopt],
   );
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setCurrentTournamentCookie(result.sample_tournament_id);
       }
       adopt(result);
+      return result.user;
     },
     [adopt],
   );

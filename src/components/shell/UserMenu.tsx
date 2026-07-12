@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
+import { notifySuccess } from "@/lib/toast";
 import { initials } from "@/lib/format";
 
 export function UserMenu() {
@@ -38,7 +39,10 @@ export function UserMenu() {
       <span className="hidden text-[13px] font-medium text-ink-dim sm:inline">{firstName}</span>
       <button
         type="button"
-        onClick={() => logout()}
+        onClick={() => {
+          logout();
+          notifySuccess("Signed out.");
+        }}
         aria-label="Sign out"
         data-tooltip-id="app-tooltip"
         data-tooltip-content="Sign out"
