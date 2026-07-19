@@ -27,6 +27,10 @@
 </p>
 
 <p align="center">
+  🔗 <strong>Live demo:</strong> <a href="gauntlet.marianacastro.dev/">gauntlet.marianacastro.dev</a>
+</p>
+
+<p align="center">
   <img src="docs/desktop-1.png" alt="Gauntlet" width="800" />
 </p>
 
