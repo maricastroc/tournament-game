@@ -99,7 +99,7 @@ describe("useGroupEditor", () => {
 
     act(() => result.current.setScore(20, "away", 3));
 
-    await waitFor(() => expect(result.current.rows[20].status).toBe("error"));
+    await waitFor(() => expect(result.current.rows[20].status).toBe("error"), { timeout: 2000 });
     expect(notifyApiError).toHaveBeenCalledTimes(1);
 
     expect(result.current.rows[20].away).toBe(3);

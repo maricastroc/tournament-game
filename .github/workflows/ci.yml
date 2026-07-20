@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Web engine — format · lint · test · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      # vitest — includes the standings conformance + fuzz-generator-in-sync checks.
+      - name: Unit tests
+        run: npm run test
+
+      - name: Production build
+        run: npm run build
+
+  conformance:
+    name: Dual-engine vector parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout web (this repo)
+        uses: actions/checkout@v4
+        with:
+          path: web
+
+      # The sibling engine, whose tests/Vectors/ must stay byte-identical to ours.
+      # A default GITHUB_TOKEN can read a public sibling; set CONFORMANCE_REPO_TOKEN
+      # (a read-only PAT) if that repo is private.
+      - name: Checkout api (sibling engine)
+        uses: actions/checkout@v4
+        with:
+          repository: maricastroc/tournament-game-api
+          path: api
+          token: ${{ secrets.CONFORMANCE_REPO_TOKEN || github.token }}
+
+      - name: Assert both engines share identical conformance vectors
+        run: web/scripts/check-vectors-parity.sh web/test-vectors api/tests/Vectors

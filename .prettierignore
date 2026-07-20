@@ -7,3 +7,9 @@ package-lock.json
 next-env.d.ts
 *.tsbuildinfo
 public
+
+# Conformance vectors: canonical copy shared byte-for-byte with the API engine
+# (tournament-game-api/tests/Vectors). standings.fuzz.json is emitted by the generator
+# (`npm run vectors`) and diffed against it in a test; standings.json is hand-authored.
+# Prettier must never rewrite these — it would break the cross-engine parity guard.
+test-vectors/
